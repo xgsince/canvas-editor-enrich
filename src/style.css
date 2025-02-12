@@ -876,6 +876,45 @@ ul {
   line-height: 22px;
 }
 
+.panels {
+  width: 250px;
+  height: calc(100% - 100px);
+  position: fixed;
+  top: 60px;
+  right: 0;
+  overflow-y: auto;
+  border: 1px solid #e2e6ed;
+  padding: 0 5px;
+}
+
+.panels .panels__header {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  border-bottom: 1px solid #e2e6ed;
+}
+
+.panels .panels__header span {
+  color: #3d4757;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.panels .panels__header span.select {
+  font-weight: bold;
+  border-bottom: 2px solid #09f;
+}
+
+.panels .panels__main > div {
+  display: none;
+}
+
+.panels .panels__main > div.panel-visible {
+  display: block;
+}
+
 .footer {
   width: 100%;
   height: 30px;

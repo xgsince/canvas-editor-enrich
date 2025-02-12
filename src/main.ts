@@ -23,9 +23,11 @@ import Editor, {
   splitText
 } from './editor'
 import { Dialog } from './components/dialog/Dialog'
+import { Form, IFormOptions } from './components/form/Form'
 import { formatPrismToken } from './utils/prism'
 import { Signature } from './components/signature/Signature'
 import { debounce, nextTick, scrollIntoView } from './utils'
+import { IControlContentChangeResult, IGetControlValueOption, IGetControlValueResult, ISetControlProperties, ISetControlValueOption } from './editor/interface/Control'
 
 window.onload = function () {
   const isApple =
@@ -65,6 +67,310 @@ window.onload = function () {
   console.log('实例: ', instance)
   // cypress使用
   Reflect.set(window, 'editor', instance)
+
+  const propertyForm = new Form('.property',
+    (event: Event) => {
+      const target = event.target as HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement
+      if(target.name){
+        const conceptId = (target.closest('.form')?.querySelector('.form-item__input[name="conceptId"]') as HTMLInputElement).value
+        if(target.name !== 'value'){
+          const payload: ISetControlProperties = {
+            conceptId: conceptId,
+            properties: { }
+          }
+          if(target.type === 'checkbox' || target.type === 'radio'){
+            if (target instanceof HTMLInputElement) {
+              payload.properties = {[target.name]: target.checked}
+            }
+          }else{
+            if(target.name === 'valueSets'){
+              payload.properties = {valueSets: JSON.parse(target.value)}
+            }else{
+              payload.properties = {[target.name]: target.value}
+            }
+          }
+          instance.command.executeSetControlProperties(payload)
+        } else {
+          const values = target.value.split(',').filter(v=>v.trim().length > 0).map(v=>({value:v}))
+          const payload: ISetControlValueOption = {
+            conceptId: conceptId,
+            value: values
+          }
+          instance.command.executeSetControlValue(payload)
+        }
+      }
+    })
+
+  const canvases = document.getElementsByTagName('canvas')
+  for (const canvas of Array.from(canvases)) {
+    canvas.addEventListener(
+      'click',
+      async evt => {
+        const positionContext = await instance.command.getPositionContextByEvent(evt)
+        console.log('getPositionContextByEvent', positionContext)
+        if(positionContext?.element?.control){
+          const payload: IGetControlValueOption = {
+            conceptId: positionContext?.element?.control?.conceptId
+          }
+          const controls = await instance.command.getControlValue(payload)
+          console.log('getControlValue', controls)
+  
+          controlPropertySetting(positionContext?.element?.control?.type, controls)
+        }
+      }
+    )
+  }
+  
+  const controlPropertySetting = function (type?: string, controls?: IGetControlValueResult | null) {
+    const control = controls?.at(0)
+    const config:IFormOptions = {
+      data: [
+        {
+          type: 'text',
+          label: '类型',
+          name: 'type',
+          required: true,
+          disabled: true,
+          value: control?.type
+        },
+        {
+          type: 'text',
+          label: '标识',
+          name: 'conceptId',
+          required: true,
+          disabled: true,
+          placeholder: '请输入标识',
+          value: control?.conceptId
+        }
+      ]
+    }
+
+    switch (type) {
+      case ControlType.TEXT:
+        config.data.push(
+          {
+            type: 'text',
+            label: '占位符',
+            name: 'placeholder',
+            required: true,
+            placeholder: '请输入占位符',
+            value: control?.placeholder
+          },
+          {
+            type: 'text',
+            label: '默认值',
+            name: 'value',
+            placeholder: '请输入默认值',
+            value: control?.value
+          }
+        )
+        break
+      case ControlType.SELECT:
+        config.data.push(
+          {
+            type: 'text',
+            label: '占位符',
+            name: 'placeholder',
+            required: true,
+            placeholder: '请输入占位符',
+            value: control?.placeholder
+          },
+          {
+            type: 'text',
+            label: '默认选中',
+            name: 'code',
+            placeholder: '例：code,code',
+            value: control?.code || ''
+          },
+          {
+            type: 'textarea',
+            label: '值集',
+            name: 'valueSets',
+            required: true,
+            height: 100,
+            placeholder: `请输入值集JSON，例：\n[{\n"value":"有",\n"code":"98175"\n}]`,
+            value: JSON.stringify(control?.valueSets || [])
+          },
+          {
+            type: 'checkbox',
+            label: '多选',
+            name: 'isMultiSelect',
+            value: control?.isMultiSelect || false
+          },
+          {
+            type: 'text',
+            label: '分隔符',
+            name: 'multiSelectDelimiter',
+            value: control?.multiSelectDelimiter || '、'
+          }
+        )
+        break
+      case ControlType.CHECKBOX:
+        config.data.push(
+          {
+            type: 'text',
+            label: '默认选中',
+            name: 'code',
+            placeholder: '例：code,code',
+            value: control?.code || ''
+          },
+          {
+            type: 'textarea',
+            label: '值集',
+            name: 'valueSets',
+            required: true,
+            height: 100,
+            placeholder: `请输入值集JSON，例：\n[{\n"value":"有",\n"code":"98175"\n}]`,
+            value: JSON.stringify(control?.valueSets || [])
+          },
+          {
+            type: 'checkbox',
+            label: '多选',
+            name: 'isMultiSelect',
+            value: control?.isMultiSelect || false
+          },
+          {
+            type: 'text',
+            label: '分隔符',
+            name: 'multiSelectDelimiter',
+            value: control?.multiSelectDelimiter || '、'
+          }
+        )
+        break
+      case ControlType.RADIO:
+        config.data.push(
+          {
+            type: 'text',
+            label: '默认选中',
+            name: 'code',
+            placeholder: '例：code',
+            value: control?.code || ''
+          },
+          {
+            type: 'textarea',
+            label: '值集',
+            name: 'valueSets',
+            required: true,
+            height: 100,
+            placeholder: `请输入值集JSON，例：\n[{\n"value":"有",\n"code":"98175"\n}]`,
+            value: JSON.stringify(control?.valueSets || [])
+          }
+        )
+        break
+      case ControlType.DATE:
+        config.data.push(
+          {
+            type: 'text',
+            label: '占位符',
+            name: 'placeholder',
+            required: true,
+            placeholder: '请输入占位符',
+            value: control?.placeholder
+          },
+          {
+            type: 'text',
+            label: '默认值',
+            name: 'value',
+            placeholder: '请输入默认值',
+            value: control?.value
+          },
+          {
+            type: 'select',
+            label: '日期格式',
+            name: 'dateFormat',
+            value: control?.dateFormat || 'yyyy-MM-dd hh:mm:ss',
+            required: true,
+            options: [
+              {
+                label: 'yyyy-MM-dd hh:mm:ss',
+                value: 'yyyy-MM-dd hh:mm:ss'
+              },
+              {
+                label: 'yyyy-MM-dd',
+                value: 'yyyy-MM-dd'
+              }
+            ]
+          }
+        )
+        break
+      case ControlType.NUMBER:
+        config.data.push(
+          {
+            type: 'text',
+            label: '占位符',
+            name: 'placeholder',
+            required: true,
+            placeholder: '请输入占位符',
+            value: control?.placeholder
+          },
+          {
+            type: 'text',
+            label: '默认值',
+            name: 'value',
+            placeholder: '请输入默认值',
+            value: control?.value
+          },
+          {
+            type: 'number',
+            label: '最小值',
+            name: 'min',
+            value: control?.min
+          },
+          {
+            type: 'number',
+            label: '最大值',
+            name: 'max',
+            value: control?.max
+          }
+        )
+        break
+      default:
+        break
+    }
+
+    config.data.push(
+      {
+        type: 'checkbox',
+        label: '下划线',
+        name: 'underline',
+        value: control?.underline || false
+      },{
+        type: 'checkbox',
+        label: '边框',
+        name: 'border',
+        value: control?.border || false
+      },{
+        type: 'checkbox',
+        label: '只读',
+        name: 'disabled',
+        value: control?.disabled || false
+      },{
+        type: 'text',
+        label: '前缀',
+        name: 'preText',
+        value: control?.preText
+      },{
+        type: 'text',
+        label: '后缀',
+        name: 'postText',
+        value: control?.postText
+      },{
+        type: 'number',
+        label: '最小宽度',
+        name: 'minWidth',
+        value: control?.minWidth
+      }
+    )
+
+    propertyForm.setOptions(config)
+  }
+
+  instance.eventBus.on('controlContentChange', (payload: IControlContentChangeResult) => {
+    const valueInput = document.querySelector('.form-item__input[name="value"]') as HTMLInputElement|HTMLTextAreaElement
+    valueInput && (valueInput.value = payload.control.value?.map(v=>v.value).join(',') || '')
+    const codeInput = document.querySelector('.form-item__input[name="code"]') as HTMLInputElement|HTMLSelectElement
+    codeInput && (codeInput.value = payload.control.code || '')
+  })
 
   // 菜单弹窗销毁
   window.addEventListener(
@@ -700,19 +1006,30 @@ window.onload = function () {
           data: [
             {
               type: 'text',
+              label: '标识',
+              name: 'conceptId',
+              required: true,
+              placeholder: '请输入标识',
+            },
+            {
+              type: 'text',
               label: '占位符',
               name: 'placeholder',
               required: true,
-              placeholder: '请输入占位符'
+              placeholder: '请输入占位符',
             },
             {
               type: 'text',
               label: '默认值',
               name: 'value',
-              placeholder: '请输入默认值'
+              placeholder: '请输入默认值',
             }
           ],
           onConfirm: payload => {
+            const conceptId = payload.find(
+              p => p.name === 'conceptId'
+            )?.value
+            if (!conceptId) return
             const placeholder = payload.find(
               p => p.name === 'placeholder'
             )?.value
@@ -722,6 +1039,7 @@ window.onload = function () {
               type: ElementType.CONTROL,
               value: '',
               control: {
+                conceptId,
                 type,
                 value: value
                   ? [
@@ -742,6 +1060,13 @@ window.onload = function () {
           data: [
             {
               type: 'text',
+              label: '标识',
+              name: 'conceptId',
+              required: true,
+              placeholder: '请输入标识',
+            },
+            {
+              type: 'text',
               label: '占位符',
               name: 'placeholder',
               required: true,
@@ -763,6 +1088,10 @@ window.onload = function () {
             }
           ],
           onConfirm: payload => {
+            const conceptId = payload.find(
+              p => p.name === 'conceptId'
+            )?.value
+            if (!conceptId) return
             const placeholder = payload.find(
               p => p.name === 'placeholder'
             )?.value
@@ -774,6 +1103,7 @@ window.onload = function () {
               type: ElementType.CONTROL,
               value: '',
               control: {
+                conceptId,
                 type,
                 code,
                 value: null,
@@ -790,6 +1120,13 @@ window.onload = function () {
           data: [
             {
               type: 'text',
+              label: '标识',
+              name: 'conceptId',
+              required: true,
+              placeholder: '请输入标识',
+            },
+            {
+              type: 'text',
               label: '默认值',
               name: 'code',
               placeholder: '请输入默认值，多个值以英文逗号分割'
@@ -804,6 +1141,10 @@ window.onload = function () {
             }
           ],
           onConfirm: payload => {
+            const conceptId = payload.find(
+              p => p.name === 'conceptId'
+            )?.value
+            if (!conceptId) return
             const valueSets = payload.find(p => p.name === 'valueSets')?.value
             if (!valueSets) return
             const code = payload.find(p => p.name === 'code')?.value
@@ -811,6 +1152,7 @@ window.onload = function () {
               type: ElementType.CONTROL,
               value: '',
               control: {
+                conceptId,
                 type,
                 code,
                 value: null,
@@ -824,6 +1166,13 @@ window.onload = function () {
         new Dialog({
           title: '单选框控件',
           data: [
+            {
+              type: 'text',
+              label: '标识',
+              name: 'conceptId',
+              required: true,
+              placeholder: '请输入标识',
+            },
             {
               type: 'text',
               label: '默认值',
@@ -840,6 +1189,10 @@ window.onload = function () {
             }
           ],
           onConfirm: payload => {
+            const conceptId = payload.find(
+              p => p.name === 'conceptId'
+            )?.value
+            if (!conceptId) return
             const valueSets = payload.find(p => p.name === 'valueSets')?.value
             if (!valueSets) return
             const code = payload.find(p => p.name === 'code')?.value
@@ -847,6 +1200,7 @@ window.onload = function () {
               type: ElementType.CONTROL,
               value: '',
               control: {
+                conceptId,
                 type,
                 code,
                 value: null,
@@ -860,6 +1214,13 @@ window.onload = function () {
         new Dialog({
           title: '日期控件',
           data: [
+            {
+              type: 'text',
+              label: '标识',
+              name: 'conceptId',
+              required: true,
+              placeholder: '请输入标识',
+            },
             {
               type: 'text',
               label: '占位符',
@@ -892,6 +1253,10 @@ window.onload = function () {
             }
           ],
           onConfirm: payload => {
+            const conceptId = payload.find(
+              p => p.name === 'conceptId'
+            )?.value
+            if (!conceptId) return
             const placeholder = payload.find(
               p => p.name === 'placeholder'
             )?.value
@@ -903,6 +1268,7 @@ window.onload = function () {
               type: ElementType.CONTROL,
               value: '',
               control: {
+                conceptId,
                 type,
                 dateFormat,
                 value: value
@@ -924,6 +1290,13 @@ window.onload = function () {
           data: [
             {
               type: 'text',
+              label: '标识',
+              name: 'conceptId',
+              required: true,
+              placeholder: '请输入标识',
+            },
+            {
+              type: 'text',
               label: '占位符',
               name: 'placeholder',
               required: true,
@@ -937,6 +1310,10 @@ window.onload = function () {
             }
           ],
           onConfirm: payload => {
+            const conceptId = payload.find(
+              p => p.name === 'conceptId'
+            )?.value
+            if (!conceptId) return
             const placeholder = payload.find(
               p => p.name === 'placeholder'
             )?.value
@@ -946,6 +1323,7 @@ window.onload = function () {
               type: ElementType.CONTROL,
               value: '',
               control: {
+                conceptId,
                 type,
                 value: value
                   ? [
@@ -1944,4 +2322,26 @@ window.onload = function () {
       }
     }
   ])
+
+  document.querySelectorAll('.panels__header span').forEach(ele => {
+    ele.addEventListener('click', (evt) => {
+      const span = evt.target as HTMLSpanElement
+      // 移除之前选中的 span 的 select 类
+      const previouslySelected = document.querySelector('.panels__header span.select')
+      if (previouslySelected) {
+        previouslySelected.classList.remove('select')
+      }
+
+      // 设置当前选中的 span 的 select 类
+      span.classList.add('select')
+
+      const previouslyVisible = document.querySelector('.panels__main div.panel-visible')
+      if (previouslyVisible) {
+        previouslyVisible.classList.remove('panel-visible')
+      }
+      const panel = span.attributes.getNamedItem('target')?.value
+      const panelDiv = document.querySelector<HTMLDivElement>('.panels__main div.' + panel)
+      panelDiv!.classList.add('panel-visible')
+    })
+  })
 }

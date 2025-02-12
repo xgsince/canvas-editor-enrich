@@ -107,8 +107,8 @@ elementList.splice(12, 0, {
     type: ControlType.TEXT,
     value: null,
     placeholder: '其他补充',
-    prefix: '{',
-    postfix: '}'
+    prefix: '',
+    postfix: ''
   }
 })
 
@@ -122,8 +122,9 @@ elementList.splice(94, 0, {
     value: null,
     code: null,
     placeholder: '有无',
-    prefix: '{',
-    postfix: '}',
+    prefix: '',
+    postfix: '',
+    highlight: '#eff',
     valueSets: [
       {
         value: '有',
@@ -452,15 +453,7 @@ elementList.push(
       type: ElementType.TAB
     },
     {
-      value: 'E',
-      size: 16
-    },
-    {
-      value: 'O',
-      size: 16
-    },
-    {
-      value: 'F',
+      value: 'EOF',
       size: 16
     }
   ]
@@ -500,6 +493,11 @@ export const options: IEditorOption = {
   },
   zone: {
     tipDisabled: false
+  },
+  control: {
+    prefix: '\u200c',
+    postfix: '\u200c',
+    activeBackgroundColor: '#eff',
   },
   maskMargin: [60, 0, 30, 0] // 菜单栏高度60，底部工具栏30为遮盖层
 }
