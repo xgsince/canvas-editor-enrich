@@ -107,21 +107,58 @@ window.onload = function () {
       'click',
       async evt => {
         const positionContext = await instance.command.getPositionContextByEvent(evt)
-        console.log('getPositionContextByEvent', positionContext)
         if(positionContext?.element?.control){
           const payload: IGetControlValueOption = {
             conceptId: positionContext?.element?.control?.conceptId
           }
           const controls = await instance.command.getControlValue(payload)
-          console.log('getControlValue', controls)
-  
-          controlPropertySetting(positionContext?.element?.control?.type, controls)
+          controlProperty(positionContext?.element?.control?.type, controls)
+        }else{
+          const wordCount = await instance.command.getWordCount()
+          propertyForm.setOptions({data: [
+            {
+              type: 'span',
+              label: '文件名',
+              name: 'fileName',
+              value: ''
+            },{
+              type: 'span',
+              label: '字符数',
+              name: 'charLength',
+              value: wordCount
+            },{
+              type: 'span',
+              label: '字符集',
+              name: 'charSet',
+              value: 'UTF-8'
+            },{
+              type: 'span',
+              label: '创建人',
+              name: 'creator',
+              value: ''
+            },{
+              type: 'span',
+              label: '创建时间',
+              name: 'createTime',
+              value: ''
+            },{
+              type: 'span',
+              label: '修改人',
+              name: 'modifier',
+              value: ''
+            },{
+              type: 'span',
+              label: '修改时间',
+              name: 'modifyTime',
+              value: ''
+            },
+          ]})
         }
       }
     )
   }
   
-  const controlPropertySetting = function (type?: string, controls?: IGetControlValueResult | null) {
+  const controlProperty = function (type?: string, controls?: IGetControlValueResult | null) {
     const control = controls?.at(0)
     const config:IFormOptions = {
       data: [
@@ -201,7 +238,7 @@ window.onload = function () {
             type: 'text',
             label: '分隔符',
             name: 'multiSelectDelimiter',
-            value: control?.multiSelectDelimiter || '、'
+            value: control?.multiSelectDelimiter
           }
         )
         break
@@ -233,7 +270,7 @@ window.onload = function () {
             type: 'text',
             label: '分隔符',
             name: 'multiSelectDelimiter',
-            value: control?.multiSelectDelimiter || '、'
+            value: control?.multiSelectDelimiter
           }
         )
         break
@@ -359,6 +396,26 @@ window.onload = function () {
         label: '最小宽度',
         name: 'minWidth',
         value: control?.minWidth
+      },{
+        type: 'text',
+        label: '字体',
+        name: 'font',
+        value: control?.font
+      },{
+        type: 'number',
+        label: '大小',
+        name: 'size',
+        value: control?.size
+      },{
+        type: 'checkbox',
+        label: '加粗',
+        name: 'bold',
+        value: control?.bold
+      },{
+        type: 'text',
+        label: '高亮',
+        name: 'highlight',
+        value: control?.highlight
       }
     )
 
@@ -1041,6 +1098,7 @@ window.onload = function () {
               control: {
                 conceptId,
                 type,
+                highlight: '#eff',
                 value: value
                   ? [
                       {
@@ -1105,6 +1163,7 @@ window.onload = function () {
               control: {
                 conceptId,
                 type,
+                highlight: '#eff',
                 code,
                 value: null,
                 placeholder,
@@ -1154,6 +1213,7 @@ window.onload = function () {
               control: {
                 conceptId,
                 type,
+                highlight: '#eff',
                 code,
                 value: null,
                 valueSets: JSON.parse(valueSets)
@@ -1202,6 +1262,7 @@ window.onload = function () {
               control: {
                 conceptId,
                 type,
+                highlight: '#eff',
                 code,
                 value: null,
                 valueSets: JSON.parse(valueSets)
@@ -1270,6 +1331,7 @@ window.onload = function () {
               control: {
                 conceptId,
                 type,
+                highlight: '#eff',
                 dateFormat,
                 value: value
                   ? [
@@ -1325,6 +1387,7 @@ window.onload = function () {
               control: {
                 conceptId,
                 type,
+                highlight: '#eff',
                 value: value
                   ? [
                       {

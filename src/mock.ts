@@ -105,6 +105,7 @@ elementList.splice(12, 0, {
   control: {
     conceptId: '1',
     type: ControlType.TEXT,
+    highlight: '#eff',
     value: null,
     placeholder: '其他补充',
     prefix: '',
@@ -174,6 +175,7 @@ elementList.splice(335, 0, {
   control: {
     conceptId: '6',
     type: ControlType.TEXT,
+    highlight: '#eff',
     value: null,
     placeholder: '内容',
     preText: '其他：',
@@ -356,6 +358,7 @@ elementList.push(
       control: {
         conceptId: '3',
         type: ControlType.CHECKBOX,
+        highlight: '#eff',
         code: '98175',
         value: '',
         valueSets: [
@@ -405,6 +408,7 @@ elementList.push(
       control: {
         conceptId: '5',
         type: ControlType.DATE,
+        highlight: '#eff',
         value: [
           {
             value: `2022-08-10 17:30:01`
@@ -431,10 +435,9 @@ elementList.push(
       control: {
         conceptId: '4',
         type: ControlType.TEXT,
+        highlight: '#eff',
         value: null,
         placeholder: '',
-        prefix: '\u200c',
-        postfix: '\u200c',
         minWidth: 160,
         underline: true
       }

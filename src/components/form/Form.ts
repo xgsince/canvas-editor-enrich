@@ -48,6 +48,15 @@ export class Form {
           optionName.classList.add('form-item--require')
         }
       }
+      formContainer.append(formItemContainer)
+
+      if(option.type === 'span') {
+        const span = document.createElement('span')
+        span.append(document.createTextNode(option.value))
+        formItemContainer.append(span)
+        continue
+      }
+
       // 选项输入框
       let optionInput:
         | HTMLInputElement
@@ -102,7 +111,6 @@ export class Form {
       }else{
         formItemContainer.append(optionInput)
       }
-      formContainer.append(formItemContainer)
     }
   }
 }

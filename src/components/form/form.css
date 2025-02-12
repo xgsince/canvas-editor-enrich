@@ -10,7 +10,7 @@
   position: relative;
 }
 
-.form-item > span {
+.form-item > span:first-of-type {
   text-align: right;
   margin-right: 5px;
   font-size: 12px;
