@@ -4,11 +4,13 @@ import prism from 'prismjs'
 import Editor, {
   BlockType,
   Command,
+  ControlIndentation,
   ControlState,
   ControlType,
   EditorMode,
   EditorZone,
   ElementType,
+  FlexDirection,
   IBlock,
   ICatalogItem,
   IElement,
@@ -271,6 +273,21 @@ window.onload = function () {
             label: '分隔符',
             name: 'multiSelectDelimiter',
             value: control?.multiSelectDelimiter
+          },{
+            type: 'select',
+            label: '布局方向',
+            name: 'flexDirection',
+            value: control?.flexDirection,
+            options: [
+              {
+                label: '水平',
+                value: FlexDirection.ROW
+              },
+              {
+                label: '垂直',
+                value: FlexDirection.COLUMN
+              }
+            ]
           }
         )
         break
@@ -291,6 +308,21 @@ window.onload = function () {
             height: 100,
             placeholder: `请输入值集JSON，例：\n[{\n"value":"有",\n"code":"98175"\n}]`,
             value: JSON.stringify(control?.valueSets || [])
+          },{
+            type: 'select',
+            label: '布局方向',
+            name: 'flexDirection',
+            value: control?.flexDirection,
+            options: [
+              {
+                label: '水平',
+                value: FlexDirection.ROW
+              },
+              {
+                label: '垂直',
+                value: FlexDirection.COLUMN
+              }
+            ]
           }
         )
         break
@@ -397,6 +429,25 @@ window.onload = function () {
         name: 'minWidth',
         value: control?.minWidth
       },{
+        type: 'select',
+        label: '对齐',
+        name: 'rowFlex',
+        value: control?.rowFlex,
+        options: [
+          {
+            label: '居左',
+            value: RowFlex.LEFT
+          },
+          {
+            label: '居中',
+            value: RowFlex.CENTER
+          },
+          {
+            label: '居右',
+            value: RowFlex.RIGHT
+          }
+        ]
+      },{
         type: 'text',
         label: '字体',
         name: 'font',
@@ -416,6 +467,25 @@ window.onload = function () {
         label: '高亮',
         name: 'highlight',
         value: control?.highlight
+      },{
+        type: 'select',
+        label: '缩进',
+        name: 'indentation',
+        value: control?.indentation,
+        options: [
+          {
+            label: '',
+            value: ''
+          },
+          {
+            label: '从行起始位置缩进',
+            value: ControlIndentation.ROW_START
+          },
+          {
+            label: '从值起始位置缩进',
+            value: ControlIndentation.VALUE_START
+          }
+        ]
       }
     )
 
