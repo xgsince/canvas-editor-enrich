@@ -8,20 +8,6 @@ import {
   pickObject,
   splitText
 } from '.'
-import {
-  BlockType,
-  EditorMode,
-  ElementType,
-  IEditorOption,
-  IElement,
-  ImageDisplay,
-  ListStyle,
-  ListType,
-  LocationPosition,
-  RowFlex,
-  TableBorder,
-  TdBorder
-} from '..'
 import { IFrameBlock } from '../core/draw/particle/block/modules/IFrameBlock'
 import { LaTexParticle } from '../core/draw/particle/latex/LaTexParticle'
 import { NON_BREAKING_SPACE, ZERO } from '../dataset/constant/Common'
@@ -49,10 +35,18 @@ import {
   titleOrderNumberMapping,
   titleSizeMapping
 } from '../dataset/constant/Title'
+import { BlockType } from '../dataset/enum/Block'
+import { ImageDisplay, LocationPosition } from '../dataset/enum/Common'
 import { ControlComponent, ControlType } from '../dataset/enum/Control'
-import { UlStyle } from '../dataset/enum/List'
+import { EditorMode } from '../dataset/enum/Editor'
+import { ElementType } from '../dataset/enum/Element'
+import { ListStyle, ListType, UlStyle } from '../dataset/enum/List'
+import { RowFlex } from '../dataset/enum/Row'
+import { TableBorder, TdBorder } from '../dataset/enum/table/Table'
 import { DeepRequired } from '../interface/Common'
 import { IControlSelect } from '../interface/Control'
+import { IEditorOption } from '../interface/Editor'
+import { IElement } from '../interface/Element'
 import { IRowElement } from '../interface/Row'
 import { ITd } from '../interface/table/Td'
 import { ITr } from '../interface/table/Tr'
@@ -168,7 +162,7 @@ export function formatElementList(
       formatElementList(valueList, {
         ...options,
         isHandleFirstElement: true,
-        isForceCompensation: false
+        isForceCompensation: true
       })
       if (valueList.length) {
         const areaId = getUUID()
@@ -176,6 +170,7 @@ export function formatElementList(
           const value = valueList[v]
           value.areaId = el.areaId || areaId
           value.area = el.area
+          value.areaIndex = v
           if (value.type === ElementType.TABLE) {
             const trList = value.trList!
             for (let r = 0; r < trList.length; r++) {
@@ -594,7 +589,7 @@ export function pickElementAttr(
   option: IPickElementOption = {}
 ): IElement {
   const { extraPickAttrs } = option
-  const zipAttrs = EDITOR_ELEMENT_ZIP_ATTR
+  const zipAttrs = [...EDITOR_ELEMENT_ZIP_ATTR]
   if (extraPickAttrs) {
     zipAttrs.push(...extraPickAttrs)
   }
@@ -613,13 +608,14 @@ export function pickElementAttr(
 interface IZipElementListOption {
   extraPickAttrs?: Array<keyof IElement>
   isClassifyArea?: boolean
+  isClone?: boolean
 }
 export function zipElementList(
   payload: IElement[],
   options: IZipElementListOption = {}
 ): IElement[] {
-  const { extraPickAttrs, isClassifyArea = false } = options
-  const elementList = deepClone(payload)
+  const { extraPickAttrs, isClassifyArea = false, isClone = true } = options
+  const elementList = isClone ? deepClone(payload) : payload
   const zipElementListData: IElement[] = []
   let e = 0
   while (e < elementList.length) {
@@ -635,7 +631,7 @@ export function zipElementList(
       continue
     }
     // 优先处理虚拟元素，后表格、超链接、日期、控件特殊处理
-    if (element.areaId && element.area) {
+    if (element.areaId) {
       const areaId = element.areaId
       const area = element.area
       // 收集并压缩数据
@@ -1779,12 +1775,14 @@ export function getNonHideElementIndex(
   index: number,
   position: LocationPosition = LocationPosition.BEFORE
 ) {
-  if (!elementList[index]?.control?.hide) return index
+  if (!elementList[index]?.control?.hide && !elementList[index]?.area?.hide) {
+    return index
+  }
   let i = index
   if (position === LocationPosition.BEFORE) {
     i = index - 1
     while (i > 0) {
-      if (!elementList[i]?.control?.hide) {
+      if (!elementList[i]?.control?.hide && !elementList[i]?.area?.hide) {
         return i
       }
       i--
@@ -1792,7 +1790,7 @@ export function getNonHideElementIndex(
   } else {
     i = index + 1
     while (i < elementList.length) {
-      if (!elementList[i]?.control?.hide) {
+      if (!elementList[i]?.control?.hide && !elementList[i]?.area?.hide) {
         return i
       }
       i++

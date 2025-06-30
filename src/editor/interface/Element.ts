@@ -64,6 +64,8 @@ export interface ITableAttr {
   trList?: ITr[]
   borderType?: TableBorder
   borderColor?: string
+  borderWidth?: number
+  borderExternalWidth?: number
 }
 
 export interface ITableRule {
@@ -118,7 +120,11 @@ export interface IDateElement {
   dateId?: string
 }
 
-export interface IImageElement {
+export interface IImageRule {
+  imgToolDisabled?: boolean
+}
+
+export interface IImageBasic {
   imgDisplay?: ImageDisplay
   imgFloatPosition?: {
     x: number
@@ -127,6 +133,8 @@ export interface IImageElement {
   }
 }
 
+export type IImageElement = IImageBasic & IImageRule
+
 export interface IBlockElement {
   block?: IBlock
 }
@@ -134,6 +142,7 @@ export interface IBlockElement {
 export interface IAreaElement {
   valueList?: IElement[]
   areaId?: string
+  areaIndex?: number
   area?: IArea
 }
 
@@ -203,4 +212,13 @@ export interface IDeleteElementByIdOption {
 export interface IGetElementByIdOption {
   id?: string
   conceptId?: string
+}
+
+export interface IInsertElementListOption {
+  isReplace?: boolean
+  isSubmitHistory?: boolean
+}
+
+export interface ISpliceElementListOption {
+  isIgnoreDeletedRule?: boolean
 }

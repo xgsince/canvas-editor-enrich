@@ -20,6 +20,7 @@ export interface IForceUpdateOption {
 
 export interface IDrawImagePayload {
   id?: string
+  conceptId?: string
   width: number
   height: number
   value: string
@@ -58,8 +59,11 @@ export interface IGetValueOption {
   extraPickAttrs?: Array<keyof IElement>
 }
 
+export type IGetOriginValueOption = Omit<IGetValueOption, 'extraPickAttrs'>
+
 export interface IAppendElementListOption {
   isPrepend?: boolean
+  isSubmitHistory?: boolean
 }
 
 export interface IGetImageOption {

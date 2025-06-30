@@ -2,6 +2,7 @@ import { Draw } from '../Draw'
 import { deepClone, getUUID, isNonValue } from '../../../utils'
 import { ElementType } from '../../../dataset/enum/Element'
 import {
+  IArea,
   IAreaInfo,
   IGetAreaValueOption,
   IGetAreaValueResult,
@@ -17,6 +18,8 @@ import { zipElementList } from '../../../utils/element'
 import { AreaMode } from '../../../dataset/enum/Area'
 import { IRange } from '../../../interface/Range'
 import { IElementPosition } from '../../../interface/Element'
+import { Placeholder } from '../frame/Placeholder'
+import { defaultPlaceholderOption } from '../../../dataset/constant/Placeholder'
 
 export class Area {
   private draw: Draw
@@ -103,7 +106,12 @@ export class Area {
     const width = this.draw.getInnerWidth()
     for (const areaInfoItem of this.areaInfoMap) {
       const { area, positionList } = areaInfoItem[1]
-      if (!area?.backgroundColor && !area?.borderColor) continue
+      if (
+        area?.hide ||
+        (!area?.backgroundColor && !area?.borderColor && !area?.placeholder)
+      ) {
+        continue
+      }
       const pagePositionList = positionList.filter(p => p.pageNo === pageNo)
       if (!pagePositionList.length) continue
       ctx.translate(0.5, 0.5)
@@ -123,6 +131,18 @@ export class Area {
         ctx.strokeStyle = area.borderColor
         ctx.strokeRect(x, y, width, height)
       }
+      // 提示词
+      if (area.placeholder && positionList.length <= 1) {
+        const placeholder = new Placeholder(this.draw)
+        placeholder.render(ctx, {
+          placeholder: {
+            ...defaultPlaceholderOption,
+            ...area.placeholder
+          },
+          startY: firstPosition.coordinate.leftTop[1]
+        })
+      }
+      ctx.translate(-0.5, -0.5)
     }
     ctx.restore()
   }
@@ -195,22 +215,18 @@ export class Area {
     if (!areaInfo.area) {
       areaInfo.area = {}
     }
-    // 是否计算
+    // 需要计算的属性
     let isCompute = false
-    // 修改属性
-    if (payload.properties.mode) {
-      areaInfo.area.mode = payload.properties.mode
-    }
-    if (payload.properties.borderColor) {
-      areaInfo.area.borderColor = payload.properties.borderColor
-    }
-    if (payload.properties.backgroundColor) {
-      areaInfo.area.backgroundColor = payload.properties.backgroundColor
-    }
-    if (!isNonValue(payload.properties.top)) {
-      isCompute = true
-      areaInfo.area.top = payload.properties.top
-    }
+    const computeProps: Array<keyof IArea> = ['top', 'hide']
+    // 循环设置
+    Object.entries(payload.properties).forEach(([key, value]) => {
+      if (isNonValue(value)) return
+      const propKey = key as keyof IArea
+      areaInfo.area[propKey] = value
+      if (computeProps.includes(propKey)) {
+        isCompute = true
+      }
+    })
     this.draw.render({
       isCompute,
       isSetCursor: false
