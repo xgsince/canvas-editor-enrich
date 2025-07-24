@@ -940,6 +940,16 @@ export class CommandAdapt {
     this.draw.render({ curIndex, isSetCursor })
   }
 
+  public insertTableFromHTML(htmlString: string) {
+    console.log('insertTableFromHTML')
+    if (!htmlString) return
+    const isDisabled = this.draw.isReadonly() || this.draw.isDisabled()
+    if (isDisabled) return
+    const activeControl = this.control.getActiveControl()
+    if (activeControl) return
+    this.tableOperate.insertTableFromHTML(htmlString)
+  }
+
   public insertTable(row: number, col: number) {
     const isDisabled = this.draw.isReadonly() || this.draw.isDisabled()
     if (isDisabled) return

@@ -34,6 +34,7 @@ export class Command {
   public executeList: CommandAdapt['list']
   public executeRowFlex: CommandAdapt['rowFlex']
   public executeRowMargin: CommandAdapt['rowMargin']
+  public executeInsertTableFromHTML: CommandAdapt['insertTableFromHTML']
   public executeInsertTable: CommandAdapt['insertTable']
   public executeInsertTableTopRow: CommandAdapt['insertTableTopRow']
   public executeInsertTableBottomRow: CommandAdapt['insertTableBottomRow']
@@ -176,6 +177,7 @@ export class Command {
     this.executeRowFlex = adapt.rowFlex.bind(adapt)
     this.executeRowMargin = adapt.rowMargin.bind(adapt)
     // 表格、图片上传、超链接、搜索、打印、图片操作
+    this.executeInsertTableFromHTML = adapt.insertTableFromHTML.bind(adapt)
     this.executeInsertTable = adapt.insertTable.bind(adapt)
     this.executeInsertTableTopRow = adapt.insertTableTopRow.bind(adapt)
     this.executeInsertTableBottomRow = adapt.insertTableBottomRow.bind(adapt)

@@ -109,7 +109,8 @@ elementList.splice(12, 0, {
     value: null,
     placeholder: '其他补充',
     prefix: '',
-    postfix: ''
+    postfix: '',
+    deletable: false,
   }
 })
 
@@ -126,6 +127,9 @@ elementList.splice(94, 0, {
     prefix: '',
     postfix: '',
     highlight: '#eff',
+    selectExclusiveOptions: {
+inputAble:true
+    },
     valueSets: [
       {
         value: '有',
@@ -213,6 +217,10 @@ elementList.splice(453, 0, {
   type: ElementType.LIST,
   listType: ListType.OL,
   valueList: [
+    {
+      value:
+        '超声引导下甲状腺细针穿刺术；\n乙型肝炎表面抗体测定；\n膜式病变细胞采集术、后颈皮下肤层；'
+    },
     {
       value:
         '超声引导下甲状腺细针穿刺术；\n乙型肝炎表面抗体测定；\n膜式病变细胞采集术、后颈皮下肤层；'
@@ -503,4 +511,376 @@ export const options: IEditorOption = {
     activeBackgroundColor: '#eff',
   },
   maskMargin: [60, 0, 30, 0] // 菜单栏高度60，底部工具栏30为遮盖层
+}
+
+export const template = {
+  data: {
+    header: [
+      {
+        value: '第一人民医院',
+        size: 18,
+        rowFlex: 'center',
+      },
+      {
+        value: '\n门诊病历',
+        size: 16,
+        rowFlex: 'center',
+      },
+      {
+        value: '\n',
+        type: 'separator',
+        width: 525,
+      },
+    ],
+    main: [
+      {
+        value: '主诉：',
+        bold: true,
+      },
+      {
+        value: '',
+        type: 'control',
+        control: {
+          conceptId: 'zs',
+          type: 'text',
+          highlight: '#eff',
+          minWidth: 600,
+          value: [],
+          placeholder: '主诉',
+        },
+      },
+      {
+        value: '\n现病史：',
+        bold: true,
+      },
+      {
+        value: '',
+        type: 'control',
+        control: {
+          conceptId: 'xbs',
+          type: 'text',
+          highlight: '#eff',
+          minWidth: 600,
+          value: [],
+          placeholder: '现病史',
+        },
+      },
+      {
+        value: '\n既往史：',
+        bold: true,
+      },
+      {
+        value: '',
+        type: 'control',
+        control: {
+          conceptId: 'jws',
+          type: 'text',
+          highlight: '#eff',
+          minWidth: 600,
+          value: [],
+          placeholder: '既往史',
+        },
+      },
+      {
+        value: '\n过敏史：',
+        bold: true,
+      },
+      {
+        value: '',
+        type: 'control',
+        control: {
+          conceptId: 'gms',
+          type: 'text',
+          highlight: '#eff',
+          minWidth: 600,
+          value: [],
+          placeholder: '过敏史',
+        },
+      },
+      {
+        value: '\n体格检查：',
+        bold: true,
+      },
+      {
+        value: '',
+        type: 'control',
+        control: {
+          conceptId: 'tgjc',
+          type: 'text',
+          highlight: '#eff',
+          minWidth: 600,
+          value: [],
+          placeholder: '查体录入',
+        },
+      },
+      {
+        value: '\n辅助检查：',
+        bold: true,
+      },
+      {
+        value: '',
+        type: 'control',
+        control: {
+          conceptId: 'fzjc',
+          type: 'text',
+          highlight: '#eff',
+          value: [],
+          placeholder: '引用检测检验医嘱',
+        },
+      },
+      {
+        value: '\n诊断：',
+        bold: true,
+      },
+      {
+        value: '',
+        type: 'control',
+        control: {
+          conceptId: 'diagDesc',
+          type: 'text',
+          highlight: '#eff',
+          value: [],
+          placeholder: '引用诊断数据',
+          disabled: true,
+        },
+      },
+      {
+        value: '\n处置：\n',
+        bold: true,
+      },
+      {
+        value: '',
+        type: 'control',
+        control: {
+          conceptId: 'operation',
+          type: 'text',
+          highlight: '#eff',
+          value: [],
+          placeholder: '引用医嘱数据',
+          disabled: true,
+        },
+      },
+      {
+        value: '\n注意事项：',
+        bold: true,
+      },
+      {
+        value: '',
+        type: 'control',
+        control: {
+          conceptId: 'zysx',
+          type: 'text',
+          highlight: '#eff',
+          value: [],
+          placeholder: '注意事项',
+        },
+      },
+    ],
+    footer: [],
+  },
+  options: {
+    mode: 'form',
+    locale: 'zhCN',
+    defaultType: 'TEXT',
+    defaultColor: '#000000',
+    defaultFont: 'Microsoft YaHei',
+    defaultSize: 16,
+    minSize: 5,
+    maxSize: 72,
+    defaultRowMargin: 1,
+    defaultBasicRowMarginHeight: 8,
+    defaultTabWidth: 32,
+    width: 565,
+    height: 796,
+    scale: 1,
+    pageGap: 10,
+    underlineColor: '#000000',
+    strikeoutColor: '#FF0000',
+    rangeAlpha: 0.6,
+    rangeColor: '#AECBFA',
+    rangeMinWidth: 5,
+    searchMatchAlpha: 0.6,
+    searchMatchColor: '#FFFF00',
+    searchNavigateMatchColor: '#AAD280',
+    highlightAlpha: 0.6,
+    highlightMarginHeight: 8,
+    resizerColor: '#4182D9',
+    resizerSize: 5,
+    marginIndicatorSize: 35,
+    marginIndicatorColor: '#BABABA',
+    margins: [20, 20, 20, 20],
+    pageMode: 'paging',
+    renderMode: 'speed',
+    defaultHyperlinkColor: '#0000FF',
+    paperDirection: 'vertical',
+    inactiveAlpha: 0.6,
+    historyMaxRecordCount: 100,
+    wordBreak: 'break-word',
+    printPixelRatio: 3,
+    maskMargin: [60, 0, 30, 0],
+    letterClass: ['A-Za-z'],
+    contextMenuDisableKeys: [],
+    shortcutDisableKeys: [],
+    scrollContainerSelector: '',
+    pageOuterSelectionDisable: false,
+    watermark: {
+      data: '',
+      type: 'text',
+      width: 0,
+      height: 0,
+      color: '#AEB5C0',
+      opacity: 0.3,
+      size: 200,
+      font: 'Microsoft YaHei',
+      repeat: false,
+      gap: [10, 10],
+      numberType: 'arabic',
+    },
+    pageNumber: {
+      bottom: 60,
+      size: 12,
+      font: 'Microsoft YaHei',
+      color: '#000000',
+      rowFlex: 'center',
+      format: '第{pageNo}页/共{pageCount}页',
+      numberType: 'arabic',
+      disabled: false,
+      startPageNo: 1,
+      fromPageNo: 0,
+      maxPageNo: null,
+    },
+    placeholder: {
+      data: '请输入正文',
+      color: '#DCDFE6',
+      opacity: 1,
+      size: 16,
+      font: 'Microsoft YaHei',
+    },
+    zone: {
+      tipDisabled: false,
+    },
+    control: {
+      placeholderColor: '#9c9b9b',
+      bracketColor: '#000000',
+      prefix: '‌',
+      postfix: '‌',
+      borderWidth: 1,
+      borderColor: '#000000',
+      activeBackgroundColor: '#eff',
+      disabledBackgroundColor: '',
+      existValueBackgroundColor: '',
+      noValueBackgroundColor: '',
+    },
+    table: {
+      tdPadding: [0, 5, 5, 5],
+      defaultTrMinHeight: 42,
+      defaultColMinWidth: 40,
+      defaultBorderColor: '#000000',
+    },
+    header: {
+      top: 0,
+      inactiveAlpha: 1,
+      maxHeightRadio: 'half',
+      disabled: false,
+      editable: true,
+    },
+    footer: {
+      bottom: 0,
+      inactiveAlpha: 1,
+      maxHeightRadio: 'half',
+      disabled: false,
+      editable: true,
+    },
+    checkbox: {
+      width: 14,
+      height: 14,
+      gap: 5,
+      lineWidth: 1,
+      fillStyle: '#5175f4',
+      strokeStyle: '#ffffff',
+      verticalAlign: 'bottom',
+    },
+    radio: {
+      width: 14,
+      height: 14,
+      gap: 5,
+      lineWidth: 1,
+      fillStyle: '#5175f4',
+      strokeStyle: '#000000',
+      verticalAlign: 'bottom',
+    },
+    cursor: {
+      width: 1,
+      color: '#000000',
+      dragWidth: 2,
+      dragColor: '#0000FF',
+      dragFloatImageDisabled: false,
+    },
+    title: {
+      defaultFirstSize: 26,
+      defaultSecondSize: 24,
+      defaultThirdSize: 22,
+      defaultFourthSize: 20,
+      defaultFifthSize: 18,
+      defaultSixthSize: 16,
+    },
+    group: {
+      opacity: 0.1,
+      backgroundColor: '#E99D00',
+      activeOpacity: 0.5,
+      activeBackgroundColor: '#E99D00',
+      disabled: false,
+      deletable: true,
+    },
+    pageBreak: {
+      font: 'Microsoft YaHei',
+      fontSize: 12,
+      lineDash: [3, 1],
+    },
+    background: {
+      color: '#FFFFFF',
+      image: '',
+      size: 'cover',
+      repeat: 'no-repeat',
+      applyPageNumbers: [],
+    },
+    lineBreak: {
+      disabled: true,
+      color: '#CCCCCC',
+      lineWidth: 1.5,
+    },
+    separator: {
+      lineWidth: 1,
+      strokeStyle: '#000000',
+    },
+    lineNumber: {
+      size: 12,
+      font: 'Microsoft YaHei',
+      color: '#000000',
+      disabled: true,
+      right: 20,
+      type: 'continuity',
+    },
+    pageBorder: {
+      color: '#000000',
+      lineWidth: 1,
+      padding: [0, 5, 0, 5],
+      disabled: true,
+    },
+    badge: {
+      top: 0,
+      left: 5,
+    },
+    modeRule: {
+      print: {
+        imagePreviewerDisabled: false,
+      },
+      readonly: {
+        imagePreviewerDisabled: false,
+      },
+      form: {
+        controlDeletableDisabled: false,
+      },
+    },
+  },
 }

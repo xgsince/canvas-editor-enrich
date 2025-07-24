@@ -1,4 +1,4 @@
-import { commentList, data, options } from './mock'
+import { commentList, data, options, template } from './mock'
 import './style.css'
 import prism from 'prismjs'
 import Editor, {
@@ -13,6 +13,7 @@ import Editor, {
   FlexDirection,
   IBlock,
   ICatalogItem,
+  IEditorData,
   IElement,
   KeyMap,
   ListStyle,
@@ -30,6 +31,7 @@ import { formatPrismToken } from './utils/prism'
 import { Signature } from './components/signature/Signature'
 import { debounce, nextTick, scrollIntoView } from './utils'
 import { IControlContentChangeResult, IGetControlValueOption, IGetControlValueResult, ISetControlProperties, ISetControlValueOption } from './editor/interface/Control'
+import { ISetValueOption } from './editor/interface/Editor'
 
 window.onload = function () {
   const isApple =
@@ -66,7 +68,42 @@ window.onload = function () {
     },
     options
   )
+    // const instance = new Editor(
+    // container,
+    // template.data,
+    // template.options,
+  //)
   console.log('实例: ', instance)
+
+    window.addEventListener(
+    'message',
+    function (event) {
+      if(event.data.templateJson){
+        const templateObj = JSON.parse(event.data.templateJson)
+        console.log('接收到模板数据', templateObj)
+        instance.command.executeSetValue(templateObj.data, templateObj.options)
+      }else{
+        instance.command.executeSetValue(template.data as Partial<IEditorData>, template.options as ISetValueOption)
+      }
+    },
+    false
+  )
+
+  instance.command.executeInsertArea(
+   {
+    id: 'area-1',
+     value: [],
+     area: {
+       placeholder: {
+         data: `请在此输入内容...`,
+         color: 'rgba(20, 20, 20, 0.5)'
+       },
+       deletable: true,
+       backgroundColor: 'rgba(5,0,0,0.07)'
+     }
+   },
+ )
+
   // cypress使用
   Reflect.set(window, 'editor', instance)
 
@@ -108,12 +145,12 @@ window.onload = function () {
     canvas.addEventListener(
       'click',
       async evt => {
-        const positionContext = await instance.command.getPositionContextByEvent(evt)
+        const positionContext = instance.command.getPositionContextByEvent(evt)
         if(positionContext?.element?.control){
           const payload: IGetControlValueOption = {
             conceptId: positionContext?.element?.control?.conceptId
           }
-          const controls = await instance.command.getControlValue(payload)
+          const controls = instance.command.getControlValue(payload)
           controlProperty(positionContext?.element?.control?.type, controls)
         }else{
           const wordCount = await instance.command.getWordCount()
@@ -159,7 +196,7 @@ window.onload = function () {
       }
     )
   }
-  
+
   const controlProperty = function (type?: string, controls?: IGetControlValueResult | null) {
     const control = controls?.at(0)
     const config:IFormOptions = {
@@ -412,6 +449,11 @@ window.onload = function () {
         type: 'checkbox',
         label: '只读',
         name: 'disabled',
+        value: control?.disabled || false
+      },{
+        type: 'checkbox',
+        label: '可删除',
+        name: 'deletable',
         value: control?.disabled || false
       },{
         type: 'text',
@@ -1750,6 +1792,22 @@ window.onload = function () {
   printDom.onclick = function () {
     console.log('print')
     instance.command.executePrint()
+  }
+
+  const exportDom = document.querySelector<HTMLDivElement>('.menu-item__export')!
+  exportDom.onclick = async function () {
+    const value = await instance.command.getValueAsync()
+    // const html = instance.command.getHTML()
+    // const editorOption = instance.command.getOptions()
+    // const controlList = instance.command.getControlList()
+    console.log(JSON.stringify(value))
+    navigator.clipboard.writeText(JSON.stringify(value))
+      .then(() => {
+        alert('已复制到剪贴板')
+      })
+      .catch(err => {
+        console.error('复制失败:', err)
+      })
   }
 
   // 6. 目录显隐 | 页面模式 | 纸张缩放 | 纸张大小 | 纸张方向 | 页边距 | 全屏 | 设置

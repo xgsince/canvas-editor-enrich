@@ -35,6 +35,100 @@ export class TableOperate {
     this.options = draw.getOptions()
   }
 
+  public insertTableFromHTML(htmlString: string) {
+    const { startIndex, endIndex } = this.range.getRange()
+    if (!~startIndex && !~endIndex) return
+
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(htmlString, 'text/html')
+    const table = doc.querySelector('table')
+    if (!table) return
+
+    const { defaultTrMinHeight } = this.options.table
+    const elementList = this.draw.getElementList()
+    const innerWidth = this.draw.getOriginalInnerWidth()
+
+    // 创建colgroup
+    const colgroup: IColgroup[] = []
+    const cols = table.querySelectorAll('col')
+    if (cols.length) {
+        cols.forEach(col => {
+            colgroup.push({
+                width: parseFloat(col.style.width) || innerWidth / cols.length
+            })
+        })
+    } else {
+        const firstRow = table.querySelector('tr')
+        const colCount = firstRow ? firstRow.children.length : 0
+        const colWidth = innerWidth / colCount
+        for (let c = 0; c < colCount; c++) {
+            colgroup.push({ width: colWidth })
+        }
+    }
+
+    // 创建trList
+    const trList: ITr[] = []
+    table.querySelectorAll('tr').forEach(tr => {
+        const tdList: ITd[] = []
+        tr.querySelectorAll('td, th').forEach((cell: Element) => {
+            // 解析单元格内容
+            const cellContent = this.parseCellContent(cell as HTMLTableCellElement)
+            tdList.push({
+                colspan: (cell as HTMLTableCellElement).colSpan || 1,
+                rowspan: (cell as HTMLTableCellElement).rowSpan || 1,
+                value: cellContent
+            })
+        })
+
+        trList.push({
+            height: Math.max(tr.clientHeight, defaultTrMinHeight),
+            tdList
+        })
+    })
+
+    const element: IElement = {
+        type: ElementType.TABLE,
+        value: '',
+        colgroup,
+        trList
+    }
+
+    // 格式化element
+    formatElementList([element], {
+        editorOptions: this.options
+    })
+    formatElementContext(elementList, [element], startIndex)
+    const curIndex = startIndex + 1
+    this.draw.spliceElementList(
+        elementList,
+        curIndex,
+        startIndex === endIndex ? 0 : endIndex - startIndex,
+        [element]
+    )
+    this.range.setRange(curIndex, curIndex)
+    this.draw.render({ curIndex, isSetCursor: false })
+}
+
+private parseCellContent(cell: HTMLTableCellElement): IElement[] {
+  return Array.from(cell.childNodes).map(node => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return {
+        type: ElementType.TEXT,
+        value: node.textContent || '',
+        size: 14,
+      }
+    }
+    return {
+      type: ElementType.TEXT,
+      value: node.textContent || '',
+      size: 14,
+      tableId: '',
+      trId: '',
+      tdId: ''
+    }
+  })
+ }
+
   public insertTable(row: number, col: number) {
     const { startIndex, endIndex } = this.range.getRange()
     if (!~startIndex && !~endIndex) return
