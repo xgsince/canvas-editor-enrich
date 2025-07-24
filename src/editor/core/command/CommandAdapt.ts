@@ -121,6 +121,7 @@ import {
   IGetAreaValueOption,
   IGetAreaValueResult,
   IInsertAreaOption,
+  ILocationAreaOption,
   ISetAreaPropertiesOption
 } from '../../interface/Area'
 import { IAreaBadge, IBadge } from '../../interface/Badge'
@@ -1297,17 +1298,12 @@ export class CommandAdapt {
     if (isDisabled) return null
     const { startIndex, endIndex } = this.range.getRange()
     if (!~startIndex && !~endIndex) return null
-    const { id, conceptId, value, width, height, imgDisplay } = payload
-    const imageId = id || getUUID()
+    const imageId = payload.id || getUUID()
     this.insertElementList([
       {
-        value,
-        width,
-        height,
-        conceptId,
+        ...payload,
         id: imageId,
-        type: ElementType.IMAGE,
-        imgDisplay
+        type: ElementType.IMAGE
       }
     ])
     return imageId
@@ -2538,8 +2534,8 @@ export class CommandAdapt {
     this.draw.getArea().setAreaProperties(payload)
   }
 
-  public locationArea(areaId: string) {
-    const context = this.draw.getArea().getContextByAreaId(areaId)
+  public locationArea(areaId: string, options?: ILocationAreaOption) {
+    const context = this.draw.getArea().getContextByAreaId(areaId, options)
     if (!context) return
     const {
       range: { endIndex },
