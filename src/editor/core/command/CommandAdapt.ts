@@ -75,7 +75,7 @@ import {
   ITableInfoByEvent
 } from '../../interface/Event'
 import { IMargin } from '../../interface/Margin'
-import { ILocationPosition } from '../../interface/Position'
+import { ILocationPosition, IPositionContext } from '../../interface/Position'
 import { IRange, RangeContext, RangeRect } from '../../interface/Range'
 import { IReplaceOption, ISearchResultContext } from '../../interface/Search'
 import { ITextDecoration } from '../../interface/Text'
@@ -2013,25 +2013,90 @@ export class CommandAdapt {
   }
 
   public locationCatalog(titleId: string) {
-    const elementList = this.draw.getOriginalMainElementList()
-    let newIndex = -1
-    for (let e = 0; e < elementList.length; e++) {
-      const element = elementList[e]
-      if (
-        element.titleId === titleId &&
-        elementList[e + 1]?.titleId !== titleId
-      ) {
-        newIndex = e
-        break
+    const elementList = this.draw.getOriginalElementList()
+
+    function getPosition(
+      elementList: IElement[],
+      titleId: string
+    ): (IRange & IPositionContext) | null {
+      for (let e = 0; e < elementList.length; e++) {
+        const element = elementList[e]
+        if (element.type === ElementType.TABLE) {
+          const trList = element.trList!
+          for (let r = 0; r < trList.length; r++) {
+            const tr = trList[r]
+            for (let d = 0; d < tr.tdList.length; d++) {
+              const td = tr.tdList[d]
+              const range = getPosition(td.value, titleId)
+              if (range) {
+                return {
+                  ...range,
+                  isTable: true,
+                  index: e,
+                  trIndex: r,
+                  tdIndex: d,
+                  tdId: td.id,
+                  trId: tr.id,
+                  tableId: element.id
+                }
+              }
+            }
+          }
+        }
+        // 找到标题末尾
+        if (element.titleId === titleId) {
+          let newIndex = e
+          while (newIndex < elementList.length) {
+            if (elementList[newIndex + 1]?.titleId !== titleId) {
+              return {
+                isTable: false,
+                startIndex: newIndex,
+                endIndex: newIndex
+              }
+            }
+            newIndex++
+          }
+        }
       }
+      return null
     }
-    if (!~newIndex) return
+
+    const context = getPosition(elementList, titleId)
+    if (!context) return
+    const {
+      isTable,
+      index,
+      startTdIndex,
+      endTdIndex,
+      startTrIndex,
+      endTrIndex,
+      trIndex,
+      tdIndex,
+      tdId,
+      trId,
+      tableId,
+      endIndex
+    } = context
     this.position.setPositionContext({
-      isTable: false
+      isTable,
+      index,
+      trIndex,
+      tdIndex,
+      tdId,
+      trId,
+      tableId
     })
-    this.range.setRange(newIndex, newIndex)
+    this.range.setRange(
+      endIndex,
+      endIndex,
+      tableId,
+      startTdIndex,
+      endTdIndex,
+      startTrIndex,
+      endTrIndex
+    )
     this.draw.render({
-      curIndex: newIndex,
+      curIndex: endIndex,
       isCompute: false,
       isSubmitHistory: false
     })
@@ -2535,6 +2600,26 @@ export class CommandAdapt {
   }
 
   public locationArea(areaId: string, options?: ILocationAreaOption) {
+    // 区域在最后时，如果后面没有元素是否追加换行符
+    if (
+      options?.isAppendLastLineBreak &&
+      options?.position === LocationPosition.OUTER_AFTER
+    ) {
+      const elementList = this.draw.getOriginalMainElementList()
+      if (elementList[elementList.length - 1].areaId === areaId) {
+        this.draw.appendElementList(
+          [
+            {
+              value: ZERO
+            }
+          ],
+          {
+            isSubmitHistory: false
+          }
+        )
+      }
+    }
+    // 获取区域位置
     const context = this.draw.getArea().getContextByAreaId(areaId, options)
     if (!context) return
     const {
@@ -2546,16 +2631,14 @@ export class CommandAdapt {
     })
     this.range.setRange(endIndex, endIndex)
     this.draw.render({
-      isSetCursor: false,
+      curIndex: endIndex,
+      isSetCursor: true,
       isCompute: false,
       isSubmitHistory: false
     })
     // 移动到可见区域
     const cursor = this.draw.getCursor()
     this.position.setCursorPosition(elementPosition)
-    cursor.drawCursor({
-      hitLineStartIndex: endIndex
-    })
     cursor.moveCursorToVisible({
       cursorPosition: elementPosition,
       direction: MoveDirection.UP
