@@ -78,7 +78,7 @@ interface IEditorOption {
   lineNumber?: ILineNumberOption // 行号配置。{size?:number; font?:string; color?:string; disabled?:boolean; right?:number}
   pageBorder?: IPageBorderOption // 页面边框配置。{color?:string; lineWidth:number; padding?:IPadding; disabled?:boolean;}
   badge?: IBadgeOption // 徽章配置。{top?:number; left?:number}
-  modeRule?: IModeRule // 编辑器模式规则配置。{print:{imagePreviewerDisabled?: boolean}; readonly:{imagePreviewerDisabled?: boolean}; form:{controlDeletableDisabled?: boolean}}
+  modeRule?: IModeRule // 编辑器模式规则配置。{print:{imagePreviewerDisabled?: boolean;backgroundDisabled?: boolean;}; readonly:{imagePreviewerDisabled?: boolean}; form:{controlDeletableDisabled?: boolean}}
 }
 ```
 
@@ -89,6 +89,7 @@ interface ITableOption {
   tdPadding?: IPadding // 单元格内边距。默认：[0, 5, 5, 5]
   defaultTrMinHeight?: number // 默认表格行最小高度。默认：42
   defaultColMinWidth?: number // 默认表格列最小宽度（整体宽度足够时应用，否则会按比例缩小）。默认：40
+  overflow?: boolean // 是否允许表格超出正文区域。默认：true
 }
 ```
 

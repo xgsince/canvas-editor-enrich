@@ -2,6 +2,7 @@ import {
   cloneProperty,
   deepClone,
   deepCloneOmitKeys,
+  deleteProperty,
   getUUID,
   isArrayEqual,
   omitObject,
@@ -43,6 +44,7 @@ import { ElementType } from '../dataset/enum/Element'
 import { ListStyle, ListType, UlStyle } from '../dataset/enum/List'
 import { RowFlex } from '../dataset/enum/Row'
 import { TableBorder, TdBorder } from '../dataset/enum/table/Table'
+import { VerticalAlign } from '../dataset/enum/VerticalAlign'
 import { DeepRequired } from '../interface/Common'
 import { IControlSelect } from '../interface/Control'
 import { IEditorOption } from '../interface/Editor'
@@ -215,6 +217,14 @@ export function formatElementList(
               isHandleFirstElement: true,
               isForceCompensation: true
             })
+            // 首字符字体大小默认使用首个字符元素字体大小
+            if (
+              !td.value[0].size &&
+              td.value[1]?.size &&
+              isTextLikeElement(td.value[1])
+            ) {
+              td.value[0].size = td.value[1].size
+            }
             for (let v = 0; v < td.value.length; v++) {
               const value = td.value[v]
               value.tdId = tdId
@@ -940,6 +950,18 @@ export function isTextLikeElement(element: IElement): boolean {
   return !element.type || TEXTLIKE_ELEMENT_TYPE.includes(element.type)
 }
 
+export function isTextElement(element: IElement): boolean {
+  return !element.type || element.type === ElementType.TEXT
+}
+
+export function getElementListText(elementList: IElement[]): string {
+  return elementList
+    .filter(el => isTextLikeElement(el))
+    .map(el => el.value)
+    .join('')
+    .replace(new RegExp(ZERO, 'g'), '')
+}
+
 export function getAnchorElement(
   elementList: IElement[],
   anchorIndex: number
@@ -959,6 +981,7 @@ export function getAnchorElement(
 
 export interface IFormatElementContextOption {
   isBreakWhenWrap?: boolean
+  ignoreContextKeys?: Array<keyof IElement>
   editorOptions?: DeepRequired<IEditorOption>
 }
 
@@ -970,7 +993,11 @@ export function formatElementContext(
 ) {
   let copyElement = getAnchorElement(sourceElementList, anchorIndex)
   if (!copyElement) return
-  const { isBreakWhenWrap = false, editorOptions } = options || {}
+  const {
+    isBreakWhenWrap = false,
+    editorOptions,
+    ignoreContextKeys = []
+  } = options || {}
   const { mode } = editorOptions || {}
   // 非设计模式时：标题元素禁用时不复制标题属性
   if (mode !== EditorMode.DESIGN && copyElement.title?.disabled) {
@@ -998,6 +1025,7 @@ export function formatElementContext(
         ...EDITOR_ROW_ATTR,
         ...AREA_CONTEXT_ATTR
       ]
+      deleteProperty(cloneAttr, ignoreContextKeys)
       cloneProperty<IElement>(cloneAttr, copyElement!, targetElement)
       targetElement.valueList?.forEach(valueItem => {
         cloneProperty<IElement>(cloneAttr, copyElement!, valueItem)
@@ -1017,6 +1045,7 @@ export function formatElementContext(
     if (!getIsBlockElement(targetElement)) {
       cloneAttr.push(...EDITOR_ROW_ATTR)
     }
+    deleteProperty(cloneAttr, ignoreContextKeys)
     cloneProperty<IElement>(cloneAttr, copyElement, targetElement)
   }
 }
@@ -1051,9 +1080,18 @@ export function convertElementToDom(
   }
   if (element.underline) {
     dom.style.textDecoration = 'underline'
+    dom.style.textDecorationStyle = element.textDecoration?.style || 'solid'
   }
   if (element.strikeout) {
     dom.style.textDecoration += ' line-through'
+  }
+  if (element.type) {
+    dom.setAttribute('data-type', element.type)
+  }
+  if (element.rowMargin) {
+    dom.style.lineHeight = (
+      element.rowMargin ?? options.defaultRowMargin
+    ).toString()
   }
   dom.innerText = element.value.replace(new RegExp(`${ZERO}`, 'g'), '\n')
   return dom
@@ -1280,6 +1318,9 @@ export function createDomFromElementList(
         }
       } else if (element.type === ElementType.SEPARATOR) {
         const hr = document.createElement('hr')
+        if (element.dashArray?.length) {
+          hr.setAttribute('data-dash-array', element.dashArray.join(','))
+        }
         clipboardDom.append(hr)
       } else if (element.type === ElementType.CHECKBOX) {
         const checkbox = document.createElement('input')
@@ -1304,6 +1345,10 @@ export function createDomFromElementList(
         const childDom = buildDom(element.control?.value || [])
         controlElement.innerHTML = childDom.innerHTML
         clipboardDom.append(controlElement)
+      } else if (element.type === ElementType.PAGE_BREAK) {
+        const pageBreakElement = document.createElement('div')
+        pageBreakElement.style.breakAfter = 'page'
+        clipboardDom.append(pageBreakElement)
       } else if (
         !element.type ||
         element.type === ElementType.LATEX ||
@@ -1349,6 +1394,9 @@ export function createDomFromElementList(
         rowFlexDom.style.textAlign = convertRowFlexToTextAlign(
           elementGroupRowFlex.rowFlex!
         )
+        if (elementGroupRowFlex.rowFlex === 'justify') {
+          rowFlexDom.style.textAlignLast = 'justify'
+        }
       }
     }
     // 布局内容
@@ -1553,13 +1601,16 @@ export function getElementListByHTML(
             colgroup: [],
             trList: []
           }
+          // colgroup
+          const colElements = tableElement.querySelectorAll('colgroup col')
           // 基础数据
           tableElement.querySelectorAll('tr').forEach(trElement => {
-            const trHeightStr = window
-              .getComputedStyle(trElement)
-              .height.replace('px', '')
+            const trHeightStr = Number(
+              window.getComputedStyle(trElement).height.replace('px', '')
+            )
             const tr: ITr = {
-              height: Number(trHeightStr),
+              height: trHeightStr,
+              minHeight: trHeightStr,
               tdList: []
             }
             trElement.querySelectorAll('th,td').forEach(tdElement => {
@@ -1571,7 +1622,10 @@ export function getElementListByHTML(
               const td: ITd = {
                 colspan: tableCell.colSpan,
                 rowspan: tableCell.rowSpan,
-                value: valueList
+                value: valueList,
+                verticalAlign: window.getComputedStyle(tdElement)
+                  .verticalAlign as VerticalAlign,
+                width: parseFloat(window.getComputedStyle(tdElement).width)
               }
               if (tableCell.style.backgroundColor) {
                 td.backgroundColor = tableCell.style.backgroundColor
@@ -1588,8 +1642,9 @@ export function getElementListByHTML(
             )
             const width = Math.ceil(options.innerWidth / tdCount)
             for (let i = 0; i < tdCount; i++) {
+              const colElement = colElements[i]?.getAttribute('width')
               element.colgroup!.push({
-                width
+                width: colElement ? parseFloat(colElement) : width
               })
             }
             elementList.push(element)
@@ -1619,8 +1674,12 @@ export function getElementListByHTML(
         } else {
           findTextNode(node)
           if (node.nodeType === 1 && n !== childNodes.length - 1) {
-            const display = window.getComputedStyle(node as Element).display
-            if (display === 'block') {
+            const nodeElement = node as Element
+            const display = window.getComputedStyle(nodeElement).display
+            if (
+              display === 'block' &&
+              !/(\n|\r\n)$/.test(nodeElement.textContent!)
+            ) {
               elementList.push({
                 value: '\n'
               })
@@ -1775,14 +1834,22 @@ export function getNonHideElementIndex(
   index: number,
   position: LocationPosition = LocationPosition.BEFORE
 ) {
-  if (!elementList[index]?.control?.hide && !elementList[index]?.area?.hide) {
+  if (
+    !elementList[index]?.hide &&
+    !elementList[index]?.control?.hide &&
+    !elementList[index]?.area?.hide
+  ) {
     return index
   }
   let i = index
   if (position === LocationPosition.BEFORE) {
     i = index - 1
     while (i > 0) {
-      if (!elementList[i]?.control?.hide && !elementList[i]?.area?.hide) {
+      if (
+        !elementList[i]?.hide &&
+        !elementList[i]?.control?.hide &&
+        !elementList[i]?.area?.hide
+      ) {
         return i
       }
       i--
@@ -1790,7 +1857,11 @@ export function getNonHideElementIndex(
   } else {
     i = index + 1
     while (i < elementList.length) {
-      if (!elementList[i]?.control?.hide && !elementList[i]?.area?.hide) {
+      if (
+        !elementList[i]?.hide &&
+        !elementList[i]?.control?.hide &&
+        !elementList[i]?.area?.hide
+      ) {
         return i
       }
       i++

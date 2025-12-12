@@ -1074,6 +1074,7 @@ private parseCellContent(cell: HTMLTableCellElement): IElement[] {
       endTrIndex
     })
     this.draw.render({
+      isSetCursor: false,
       isCompute: false,
       isSubmitHistory: false
     })

@@ -78,7 +78,7 @@ interface IEditorOption {
   lineNumber?: ILineNumberOption // LineNumber option. {size?:number; font?:string; color?:string; disabled?:boolean; right?:number}
   pageBorder?: IPageBorderOption // PageBorder option. {color?:string; lineWidth:number; padding?:IPadding; disabled?:boolean;}
   badge?: IBadgeOption // Badge option. {top?:number; left?:number}
-  modeRule?: IModeRule // mode rule option. {print:{imagePreviewerDisabled?: boolean}; readonly:{imagePreviewerDisabled?: boolean}; form:{controlDeletableDisabled?: boolean}}
+  modeRule?: IModeRule // mode rule option. {print:{imagePreviewerDisabled?: boolean; backgroundDisabled?: boolean;}; readonly:{imagePreviewerDisabled?: boolean}; form:{controlDeletableDisabled?: boolean}}
 }
 ```
 
@@ -89,6 +89,7 @@ interface ITableOption {
   tdPadding?: IPadding // Cell padding. default: [0, 5, 5, 5]
   defaultTrMinHeight?: number // Default table row minimum height. default: 42
   defaultColMinWidth?: number // Default minimum width for table columns (applied if the overall width is sufficient, otherwise
+  overflow?: boolean // Is it allowed for the table to exceed the main body. Default: true
 }
 ```
 

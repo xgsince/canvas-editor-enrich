@@ -83,6 +83,7 @@ export class Command {
   public executeSetAreaBadge: CommandAdapt['setAreaBadge']
   public executeInsertElementList: CommandAdapt['insertElementList']
   public executeInsertArea: CommandAdapt['insertArea']
+  public executeSetAreaValue: CommandAdapt['setAreaValue']
   public executeSetAreaProperties: CommandAdapt['setAreaProperties']
   public executeLocationArea: CommandAdapt['locationArea']
   public executeAppendElementList: CommandAdapt['appendElementList']
@@ -108,6 +109,7 @@ export class Command {
   public executeSetControlHighlight: CommandAdapt['setControlHighlight']
   public executeLocationControl: CommandAdapt['locationControl']
   public executeInsertControl: CommandAdapt['insertControl']
+  public executeJumpControl: CommandAdapt['jumpControl']
   public executeUpdateOptions: CommandAdapt['updateOptions']
   public executeInsertTitle: CommandAdapt['insertTitle']
   public executeFocus: CommandAdapt['focus']
@@ -232,6 +234,7 @@ export class Command {
     // 区域
     this.getAreaValue = adapt.getAreaValue.bind(adapt)
     this.executeInsertArea = adapt.insertArea.bind(adapt)
+    this.executeSetAreaValue = adapt.setAreaValue.bind(adapt)
     this.executeSetAreaProperties = adapt.setAreaProperties.bind(adapt)
     this.executeLocationArea = adapt.locationArea.bind(adapt)
     // 通用
@@ -292,5 +295,6 @@ export class Command {
     this.getControlList = adapt.getControlList.bind(adapt)
     this.executeLocationControl = adapt.locationControl.bind(adapt)
     this.executeInsertControl = adapt.insertControl.bind(adapt)
+    this.executeJumpControl = adapt.jumpControl.bind(adapt)
   }
 }

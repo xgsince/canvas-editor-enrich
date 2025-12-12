@@ -40,6 +40,10 @@ export interface IElementStyle {
   textDecoration?: ITextDecoration
 }
 
+export interface IElementRule {
+  hide?: boolean
+}
+
 export interface IElementGroup {
   groupIds?: string[]
 }
@@ -66,6 +70,7 @@ export interface ITableAttr {
   borderColor?: string
   borderWidth?: number
   borderExternalWidth?: number
+  translateX?: number
 }
 
 export interface ITableRule {
@@ -148,6 +153,7 @@ export interface IAreaElement {
 
 export type IElement = IElementBasic &
   IElementStyle &
+  IElementRule &
   IElementGroup &
   ITable &
   IHyperlinkElement &
@@ -217,6 +223,7 @@ export interface IGetElementByIdOption {
 export interface IInsertElementListOption {
   isReplace?: boolean
   isSubmitHistory?: boolean
+  ignoreContextKeys?: Array<keyof IElement>
 }
 
 export interface ISpliceElementListOption {
