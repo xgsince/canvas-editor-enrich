@@ -684,7 +684,7 @@ export const template = {
     defaultType: 'TEXT',
     defaultColor: '#000000',
     defaultFont: 'Microsoft YaHei',
-    defaultSize: 16,
+    defaultSize: 14,
     minSize: 5,
     maxSize: 72,
     defaultRowMargin: 1,
@@ -737,7 +737,7 @@ export const template = {
       numberType: 'arabic',
     },
     pageNumber: {
-      bottom: 60,
+      bottom: 20,
       size: 12,
       font: 'Microsoft YaHei',
       color: '#000000',

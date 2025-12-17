@@ -81,7 +81,10 @@ window.onload = function () {
       if(event.data.templateJson){
         const templateObj = JSON.parse(event.data.templateJson)
         console.log('接收到模板数据', templateObj)
-        instance.command.executeSetValue(templateObj.data, templateObj.options)
+        //instance.command.executeSetValue(templateObj.data, templateObj.options)//options没实现
+        instance.command.executeSetValue(templateObj.data)
+        instance.command.executeUpdateOptions(templateObj.options)
+        instance.command.executePaperSize(templateObj.options.width, templateObj.options.height)
       }else{
         instance.command.executeSetValue(template.data as Partial<IEditorData>, template.options as ISetValueOption)
       }
@@ -96,10 +99,8 @@ window.onload = function () {
      area: {
        placeholder: {
          data: `请在此输入内容...`,
-         color: 'rgba(20, 20, 20, 0.5)'
        },
        deletable: true,
-       backgroundColor: 'rgba(5,0,0,0.07)'
      }
    },
  )
@@ -454,7 +455,7 @@ window.onload = function () {
         type: 'checkbox',
         label: '可删除',
         name: 'deletable',
-        value: control?.disabled || false
+        value: control?.deletable || false
       },{
         type: 'text',
         label: '前缀',
