@@ -74,11 +74,13 @@ interface IEditorOption {
   zone?: IZoneOption // Zone option。{tipDisabled?:boolean;}
   background?: IBackgroundOption // Background option. {color?:string; image?:string; size?:BackgroundSize; repeat?:BackgroundRepeat; applyPageNumbers?:number[]}。default: {color: '#FFFFFF'}
   lineBreak?: ILineBreakOption // LineBreak option. {disabled?:boolean; color?:string; lineWidth?:number;}
+  whiteSpace?: IWhiteSpaceOption // WhiteSpace option. {disabled?:boolean; color?:string; radius?:number;}
   separator?: ISeparatorOption // Separator option. {lineWidth?:number; strokeStyle?:string;}
   lineNumber?: ILineNumberOption // LineNumber option. {size?:number; font?:string; color?:string; disabled?:boolean; right?:number}
   pageBorder?: IPageBorderOption // PageBorder option. {color?:string; lineWidth:number; padding?:IPadding; disabled?:boolean;}
   badge?: IBadgeOption // Badge option. {top?:number; left?:number}
   modeRule?: IModeRule // mode rule option. {print:{imagePreviewerDisabled?: boolean; backgroundDisabled?: boolean;}; readonly:{imagePreviewerDisabled?: boolean}; form:{controlDeletableDisabled?: boolean}}
+  graffiti?: IGraffitiOption // graffiti mode option. {defaultLineWidth?: number; defaultLineColor?: string}
 }
 ```
 

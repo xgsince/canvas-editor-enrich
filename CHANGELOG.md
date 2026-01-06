@@ -1,3 +1,46 @@
+## [0.9.122](https://github.com/Hufe921/canvas-editor/compare/v0.9.121...v0.9.122) (2025-12-30)
+
+
+### Bug Fixes
+
+* drawing position error in graffiti mode ([20dc863](https://github.com/Hufe921/canvas-editor/commit/20dc863d6ff2396b43cfb8f6709d71f1a704a7c9))
+
+
+### Documentation
+
+* update README.md ([4462afd](https://github.com/Hufe921/canvas-editor/commit/4462afd7471eb5366363bc1527e6b53a6d1105b7))
+
+
+### Features
+
+* add iframe block allow permissions configuration #1260 ([0caa225](https://github.com/Hufe921/canvas-editor/commit/0caa225ab1d481a2c508cc4609ce459370d1dd27)), closes [#1260](https://github.com/Hufe921/canvas-editor/issues/1260)
+* draw white space marker #1329 ([2c1f378](https://github.com/Hufe921/canvas-editor/commit/2c1f378b8aaaa3cf60bddc71135df908d05a6cd1)), closes [#1329](https://github.com/Hufe921/canvas-editor/issues/1329)
+
+
+### Performance Improvements
+
+* reduce graffiti points and optimize drawing performance ([a252997](https://github.com/Hufe921/canvas-editor/commit/a25299732d5befb187dd5b57f6b41313f6abf7b0))
+
+
+
+## [0.9.121](https://github.com/Hufe921/canvas-editor/compare/v0.9.120...v0.9.121) (2025-12-19)
+
+
+### Bug Fixes
+
+* clear eventbus when destroying editor ([17e7fcd](https://github.com/Hufe921/canvas-editor/commit/17e7fcda00a71e8a4bad8360f8c473f188ba229c))
+* compute position boundary error ([5835396](https://github.com/Hufe921/canvas-editor/commit/58353968376623fcd82a308d8760a2eb449188bf))
+* graffiti mode boundary error ([9781f2d](https://github.com/Hufe921/canvas-editor/commit/9781f2d038d3537fc26bf3cebff0ae452c45b07a))
+* restrict allowed characters in number control #1319 ([9e31b41](https://github.com/Hufe921/canvas-editor/commit/9e31b41720ad5269813db364db3b1c39e9865185)), closes [#1319](https://github.com/Hufe921/canvas-editor/issues/1319)
+
+
+### Features
+
+* add graffiti mode #992 ([5bd66a6](https://github.com/Hufe921/canvas-editor/commit/5bd66a641031d0390f7d37d50b1210aed9defc7a)), closes [#992](https://github.com/Hufe921/canvas-editor/issues/992)
+* optimize zero width element ascent calculation #1324 ([890b87d](https://github.com/Hufe921/canvas-editor/commit/890b87da4b3c4b80c725e15956e417eef5dce712)), closes [#1324](https://github.com/Hufe921/canvas-editor/issues/1324)
+
+
+
 ## [0.9.120](https://github.com/Hufe921/canvas-editor/compare/v0.9.119...v0.9.120) (2025-11-28)
 
 

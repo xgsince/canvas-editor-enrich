@@ -29,11 +29,14 @@ import { IBadgeOption } from './Badge'
 import { IElement } from './Element'
 import { LocationPosition } from '../dataset/enum/Common'
 import { IRange } from './Range'
+import { IGraffitiData, IGraffitiOption } from './Graffiti'
+import { IWhiteSpaceOption } from './WhiteSpace'
 
 export interface IEditorData {
   header?: IElement[]
   main: IElement[]
   footer?: IElement[]
+  graffiti?: IGraffitiData[]
 }
 
 export interface IEditorOption {
@@ -97,11 +100,13 @@ export interface IEditorOption {
   zone?: IZoneOption
   background?: IBackgroundOption
   lineBreak?: ILineBreakOption
+  whiteSpace?: IWhiteSpaceOption
   separator?: ISeparatorOption
   lineNumber?: ILineNumberOption
   pageBorder?: IPageBorderOption
   badge?: IBadgeOption
   modeRule?: IModeRule
+  graffiti?: IGraffitiOption
 }
 
 export interface IEditorResult {

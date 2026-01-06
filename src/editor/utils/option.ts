@@ -49,6 +49,10 @@ import {
 import { defaultBadgeOption } from '../dataset/constant/Badge'
 import { IBadgeOption } from '../interface/Badge'
 import { defaultModeRuleOption } from '../dataset/constant/Editor'
+import { IGraffitiOption } from '../interface/Graffiti'
+import { defaultGraffitiOption } from '../dataset/constant/Graffiti'
+import { IWhiteSpaceOption } from '../interface/WhiteSpace'
+import { defaultWhiteSpaceOption } from '../dataset/constant/WhiteSpace'
 
 export function mergeOption(
   options: IEditorOption = {}
@@ -117,6 +121,10 @@ export function mergeOption(
     ...defaultLineBreak,
     ...options.lineBreak
   }
+  const whiteSpaceOptions: Required<IWhiteSpaceOption> = {
+    ...defaultWhiteSpaceOption,
+    ...options.whiteSpace
+  }
   const separatorOptions: Required<ISeparatorOption> = {
     ...defaultSeparatorOption,
     ...options.separator
@@ -132,6 +140,10 @@ export function mergeOption(
   const badgeOptions: Required<IBadgeOption> = {
     ...defaultBadgeOption,
     ...options.badge
+  }
+  const graffitiOptions: Required<IGraffitiOption> = {
+    ...defaultGraffitiOption,
+    ...options.graffiti
   }
   const modeRuleOption: DeepRequired<IModeRule> = {
     print: {
@@ -210,10 +222,12 @@ export function mergeOption(
     zone: zoneOptions,
     background: backgroundOptions,
     lineBreak: lineBreakOptions,
+    whiteSpace: whiteSpaceOptions,
     separator: separatorOptions,
     lineNumber: lineNumberOptions,
     pageBorder: pageBorderOptions,
     badge: badgeOptions,
-    modeRule: modeRuleOption
+    modeRule: modeRuleOption,
+    graffiti: graffitiOptions
   }
 }
