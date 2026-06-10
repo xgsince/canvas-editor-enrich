@@ -46,10 +46,9 @@ export function deepCloneOmitKeys<T, K>(obj: T, omitKeys: (keyof K)[]): T {
   if (Array.isArray(obj)) {
     newObj = obj.map(item => deepCloneOmitKeys(item, omitKeys)) as T
   } else {
-    // prettier-ignore
-    (Object.keys(obj) as (keyof T)[]).forEach(key => {
+    ;(Object.keys(obj) as (keyof T)[]).forEach(key => {
       if (omitKeys.includes(key as unknown as keyof K)) return
-      newObj[key] = deepCloneOmitKeys(obj[key] , omitKeys)
+      newObj[key] = deepCloneOmitKeys(obj[key], omitKeys)
     })
   }
   return newObj
@@ -66,8 +65,7 @@ export function deepClone<T>(obj: T): T {
   if (Array.isArray(obj)) {
     newObj = obj.map(item => deepClone(item)) as T
   } else {
-    // prettier-ignore
-    (Object.keys(obj) as (keyof T)[]).forEach(key => {
+    ;(Object.keys(obj) as (keyof T)[]).forEach(key => {
       newObj[key] = deepClone(obj[key])
     })
   }
@@ -195,6 +193,9 @@ export function mergeObject<T>(source: T, target: T): T {
   if (isObject(source) && isObject(target)) {
     const objectTarget = <Record<string, unknown>>target
     for (const [key, val] of Object.entries(source)) {
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        continue
+      }
       if (!objectTarget[key]) {
         objectTarget[key] = val
       } else {
@@ -375,6 +376,15 @@ export function isNonValue(value: unknown): boolean {
   return value === undefined || value === null
 }
 
+export function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = reject
+    img.src = src
+  })
+}
+
 export function normalizeLineBreak(text: string): string {
   return text.replace(/\r\n|\r/g, '\n')
 }
@@ -417,4 +427,29 @@ export function indexOf(
     return { index: -1, length: 0 }
   }
   return { index: match.index, length: match[0].length }
+}
+
+// 滚动到可视视野范围
+export function scrollIntoView(container: HTMLElement, selected: HTMLElement) {
+  if (!selected) {
+    container.scrollTop = 0
+    return
+  }
+  const offsetParents: HTMLElement[] = []
+  let pointer = <HTMLElement>selected.offsetParent
+  while (pointer && container !== pointer && container.contains(pointer)) {
+    offsetParents.push(pointer)
+    pointer = <HTMLElement>pointer.offsetParent
+  }
+  const top =
+    selected.offsetTop +
+    offsetParents.reduce((prev, curr) => prev + curr.offsetTop, 0)
+  const bottom = top + selected.offsetHeight
+  const viewRectTop = container.scrollTop
+  const viewRectBottom = viewRectTop + container.clientHeight
+  if (top < viewRectTop) {
+    container.scrollTop = top
+  } else if (bottom > viewRectBottom) {
+    container.scrollTop = bottom - container.clientHeight
+  }
 }

@@ -107,6 +107,8 @@ window.onload = function () {
 
   // cypress使用
   Reflect.set(window, 'editor', instance)
+  // canvas-editor-devtools使用
+  Reflect.set(window, '__CANVAS_EDITOR_INSTANCE__', instance)
 
   const propertyForm = new Form('.property',
     (event: Event) => {
@@ -1079,10 +1081,13 @@ window.onload = function () {
         onConfirm: payload => {
           const nullableIndex = payload.findIndex(p => !p.value)
           if (~nullableIndex) return
-          const watermark = payload.reduce((pre, cur) => {
-            pre[cur.name] = cur.value
-            return pre
-          }, <any>{})
+          const watermark = payload.reduce(
+            (pre, cur) => {
+              pre[cur.name] = cur.value
+              return pre
+            },
+            <any>{}
+          )
           const repeat = watermark.repeat === '1'
           instance.command.executeAddWatermark({
             data: watermark.data,
@@ -1725,6 +1730,8 @@ window.onload = function () {
     document.querySelector<HTMLInputElement>('#option-reg')!
   const searchCaseInputDom =
     document.querySelector<HTMLInputElement>('#option-case')!
+  const searchSelectionInputDom =
+    document.querySelector<HTMLInputElement>('#option-selection')!
   const searchDom =
     document.querySelector<HTMLDivElement>('.menu-item__search')!
   searchDom.title = `搜索与替换(${isApple ? '⌘' : 'Ctrl'}+F)`
@@ -1765,7 +1772,8 @@ window.onload = function () {
   function emitSearch() {
     instance.command.executeSearch(searchInputDom.value || null, {
       isRegEnable: searchRegInputDom.checked,
-      isIgnoreCase: searchCaseInputDom.checked
+      isIgnoreCase: searchCaseInputDom.checked,
+      isLimitSelection: searchSelectionInputDom.checked
     })
     setSearchResult()
   }
@@ -1773,6 +1781,7 @@ window.onload = function () {
   searchInputDom.oninput = emitSearch
   searchRegInputDom.onchange = emitSearch
   searchCaseInputDom.onchange = emitSearch
+  searchSelectionInputDom.onchange = emitSearch
   searchInputDom.onkeydown = function (evt) {
     if (evt.key === 'Enter') {
       emitSearch()
@@ -2343,9 +2352,8 @@ window.onload = function () {
   }
 
   instance.listener.pageSizeChange = function (payload) {
-    document.querySelector<HTMLSpanElement>(
-      '.page-size'
-    )!.innerText = `${payload}`
+    document.querySelector<HTMLSpanElement>('.page-size')!.innerText =
+      `${payload}`
   }
 
   instance.listener.intersectionPageNoChange = function (payload) {
@@ -2448,6 +2456,72 @@ window.onload = function () {
               userName: 'Hufe',
               rangeText: command.getRangeText(),
               createdDate: new Date().toLocaleString()
+            })
+          }
+        })
+      }
+    },
+    {
+      name: '新增题注',
+      icon: 'caption',
+      when: payload => {
+        return (
+          !payload.isReadonly &&
+          payload.startElement?.type === ElementType.IMAGE &&
+          !payload.startElement?.imgCaption
+        )
+      },
+      callback: (command: Command) => {
+        new Dialog({
+          title: '新增题注',
+          data: [
+            {
+              type: 'text',
+              label: '题注内容',
+              name: 'value',
+              required: true,
+              placeholder: '请输入题注内容，使用{imageNo}表示图片序号'
+            }
+          ],
+          onConfirm: payload => {
+            const value = payload.find(p => p.name === 'value')?.value
+            if (!value) return
+            command.executeSetImageCaption({
+              value
+            })
+          }
+        })
+      }
+    },
+    {
+      name: '修改题注',
+      icon: 'caption',
+      when: payload => {
+        return (
+          !payload.isReadonly &&
+          payload.startElement?.type === ElementType.IMAGE &&
+          !!payload.startElement?.imgCaption
+        )
+      },
+      callback: (command: Command, context) => {
+        const currentCaption = context.startElement?.imgCaption
+        new Dialog({
+          title: '修改题注',
+          data: [
+            {
+              type: 'text',
+              label: '题注内容',
+              name: 'value',
+              required: true,
+              value: currentCaption?.value,
+              placeholder: '请输入题注内容，使用{imageNo}表示图片序号'
+            }
+          ],
+          onConfirm: payload => {
+            const value = payload.find(p => p.name === 'value')?.value
+            command.executeSetImageCaption({
+              ...currentCaption,
+              value: value || ''
             })
           }
         })

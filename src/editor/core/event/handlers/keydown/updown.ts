@@ -321,8 +321,7 @@ export function updown(evt: KeyboardEvent, host: CanvasEvent) {
   // 执行跳转
   if (!~anchorStartIndex || !~anchorEndIndex) return
   if (anchorStartIndex > anchorEndIndex) {
-    // prettier-ignore
-    [anchorStartIndex, anchorEndIndex] = [anchorEndIndex, anchorStartIndex]
+    ;[anchorStartIndex, anchorEndIndex] = [anchorEndIndex, anchorStartIndex]
   }
   rangeManager.setRange(anchorStartIndex, anchorEndIndex)
   const isCollapsed = anchorStartIndex === anchorEndIndex

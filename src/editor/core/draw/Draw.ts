@@ -52,12 +52,14 @@ import { SelectionObserver } from '../observer/SelectionObserver'
 import { TableParticle } from './particle/table/TableParticle'
 import { TableTool } from './particle/table/TableTool'
 import { HyperlinkParticle } from './particle/HyperlinkParticle'
+import { LabelParticle } from './particle/LabelParticle'
 import { Header } from './frame/Header'
 import { SuperscriptParticle } from './particle/SuperscriptParticle'
 import { SubscriptParticle } from './particle/SubscriptParticle'
 import { SeparatorParticle } from './particle/SeparatorParticle'
 import { PageBreakParticle } from './particle/PageBreakParticle'
 import { Watermark } from './frame/Watermark'
+import { WatermarkLayer } from '../../dataset/enum/Watermark'
 import {
   EditorComponent,
   EditorMode,
@@ -118,6 +120,8 @@ import { TableOperate } from './particle/table/TableOperate'
 import { Area } from './interactive/Area'
 import { Badge } from './frame/Badge'
 import { Graffiti } from './graffiti/Graffiti'
+import { Magnifier } from './interactive/Magnifier'
+import { Accessibility } from '../accessibility/Accessibility'
 
 export class Draw {
   private container: HTMLDivElement
@@ -144,6 +148,7 @@ export class Draw {
   private margin: Margin
   private background: Background
   private badge: Badge
+  private magnifier: Magnifier
   private search: Search
   private group: Group
   private area: Area
@@ -165,6 +170,7 @@ export class Draw {
   private header: Header
   private footer: Footer
   private hyperlinkParticle: HyperlinkParticle
+  private labelParticle: LabelParticle
   private dateParticle: DateParticle
   private separatorParticle: SeparatorParticle
   private pageBreakParticle: PageBreakParticle
@@ -183,6 +189,7 @@ export class Draw {
   private selectionObserver: SelectionObserver
   private imageObserver: ImageObserver
   private graffiti: Graffiti
+  private accessibility: Accessibility
 
   private LETTER_REG: RegExp
   private WORD_LIKE_REG: RegExp
@@ -228,6 +235,7 @@ export class Draw {
     this.margin = new Margin(this)
     this.background = new Background(this)
     this.badge = new Badge(this)
+    this.magnifier = new Magnifier(this)
     this.search = new Search(this)
     this.group = new Group(this)
     this.area = new Area(this)
@@ -248,6 +256,7 @@ export class Draw {
     this.header = new Header(this, data.header)
     this.footer = new Footer(this, data.footer)
     this.hyperlinkParticle = new HyperlinkParticle(this)
+    this.labelParticle = new LabelParticle(this)
     this.dateParticle = new DateParticle(this)
     this.separatorParticle = new SeparatorParticle(this)
     this.pageBreakParticle = new PageBreakParticle(this)
@@ -276,6 +285,7 @@ export class Draw {
 
     this.workerManager = new WorkerManager(this)
     new Actuator(this)
+    this.accessibility = new Accessibility(this)
 
     const { letterClass } = options
     this.LETTER_REG = new RegExp(`[${letterClass.join('')}]`)
@@ -637,6 +647,10 @@ export class Draw {
     return this.badge
   }
 
+  public getMagnifier(): Magnifier {
+    return this.magnifier
+  }
+
   public getHistoryManager(): HistoryManager {
     return this.historyManager
   }
@@ -915,6 +929,10 @@ export class Draw {
     return this.tableParticle
   }
 
+  public getBlockParticle(): BlockParticle {
+    return this.blockParticle
+  }
+
   public getHeader(): Header {
     return this.header
   }
@@ -963,12 +981,16 @@ export class Draw {
     return this.graffiti
   }
 
+  public getAccessibility(): Accessibility {
+    return this.accessibility
+  }
+
   public getRowCount(): number {
     return this.getRowList().length
   }
 
   public async getDataURL(payload: IGetImageOption = {}): Promise<string[]> {
-    const { pixelRatio, mode } = payload
+    const { pixelRatio, mode, snapDomFunction } = payload
     // 放大像素比
     if (pixelRatio) {
       this.setPagePixelRatio(pixelRatio)
@@ -986,6 +1008,10 @@ export class Draw {
       isSubmitHistory: false
     })
     await this.imageObserver.allSettled()
+    // 叠加iframe图片
+    if (snapDomFunction) {
+      await this.blockParticle.drawIframeToPage(this.pageList, snapDomFunction)
+    }
     const dataUrlList = this.pageList.map(c => c.toDataURL())
     // 还原
     if (pixelRatio) {
@@ -1193,6 +1219,8 @@ export class Draw {
         row => row.elementList
       )
     }
+    // 同步block的最新数据
+    this.blockParticle.update()
     const data: Required<IEditorData> = {
       header: this.getHeaderElementList(),
       main: mainElementList,
@@ -1339,10 +1367,25 @@ export class Draw {
   }
 
   public getElementRowMargin(el: IElement) {
-    const { defaultBasicRowMarginHeight, defaultRowMargin, scale } =
-      this.options
+    const {
+      defaultSize,
+      defaultBasicRowMarginHeight,
+      defaultRowMargin,
+      scale
+    } = this.options
+    // 字体在12-30之间，行间距不变，小于12按比例缩小，大于30按比例放大
+    const fontSize = el.size || defaultSize
+    let ratio = 1
+    if (fontSize < 12) {
+      ratio = fontSize / 12
+    } else if (fontSize > 30) {
+      ratio = 1 + (fontSize - 30) / 30
+    }
     return (
-      defaultBasicRowMarginHeight * (el.rowMargin ?? defaultRowMargin) * scale
+      defaultBasicRowMarginHeight *
+      ratio *
+      (el.rowMargin ?? defaultRowMargin) *
+      scale
     )
   }
 
@@ -1360,9 +1403,9 @@ export class Draw {
     } = payload
     const {
       defaultSize,
-      defaultRowMargin,
       scale,
-      table: { tdPadding, defaultTrMinHeight },
+      imgCaption,
+      table: { tdPadding },
       defaultTabWidth
     } = this.options
     const defaultBasicRowMarginHeight = this.getDefaultBasicRowMarginHeight()
@@ -1394,8 +1437,7 @@ export class Draw {
     for (let i = 0; i < elementList.length; i++) {
       const curRow: IRow = rowList[rowList.length - 1]
       const element = elementList[i]
-      const rowMargin =
-        defaultBasicRowMarginHeight * (element.rowMargin ?? defaultRowMargin)
+      const rowMargin = this.getElementRowMargin(element)
       const metrics: IElementMetrics = {
         width: 0,
         height: 0,
@@ -1451,8 +1493,14 @@ export class Draw {
             metrics.height = elementHeight
             metrics.boundingBoxDescent = elementHeight
           }
+          // 增加题注高度
+          if (element.imgCaption?.value) {
+            const fontSize = element.imgCaption.size || imgCaption.size
+            const captionTop = element.imgCaption.top ?? imgCaption.top
+            const captionHeight = (fontSize + captionTop) * scale
+            metrics.boundingBoxAscent += captionHeight
+          }
         }
-        metrics.boundingBoxAscent = 0
       } else if (element.type === ElementType.TABLE) {
         const tdPaddingWidth = tdPadding[1] + tdPadding[3]
         const tdPaddingHeight = tdPadding[0] + tdPadding[2]
@@ -1481,10 +1529,13 @@ export class Draw {
         }
         element.pagingIndex = element.pagingIndex ?? 0
         const trList = element.trList!
-        // 计算前移除上一次的高度
+        // 重置tr高度：行高不可低于一个单元格最小高度
+        const tdMinHeight =
+          tdPaddingHeight + defaultSize + (rowMargin * 2) / scale
         for (let t = 0; t < trList.length; t++) {
           const tr = trList[t]
-          tr.height = tr.minHeight || defaultTrMinHeight
+          // 行高默认当前最小高度，后续根据内容自适应
+          tr.height = Math.max(tdMinHeight, tr.minHeight || 0)
           tr.minHeight = tr.height
         }
         // 计算表格行列
@@ -1698,8 +1749,9 @@ export class Draw {
         }
       } else if (element.type === ElementType.SEPARATOR) {
         const {
-          separator: { lineWidth }
+          separator: { lineWidth: defaultLineWidth }
         } = this.options
+        const lineWidth = element.lineWidth || defaultLineWidth
         element.width = availableWidth / scale
         metrics.width = availableWidth
         metrics.height = lineWidth * scale
@@ -1731,7 +1783,8 @@ export class Draw {
         metrics.width = defaultTabWidth * scale
         metrics.height = defaultSize * scale
         metrics.boundingBoxDescent = 0
-        metrics.boundingBoxAscent = metrics.height
+        metrics.boundingBoxAscent =
+          this.textParticle.getBasisWordBoundingBoxAscent(ctx, ctx.font)
       } else if (element.type === ElementType.BLOCK) {
         if (!element.width) {
           metrics.width = availableWidth
@@ -1742,6 +1795,19 @@ export class Draw {
         metrics.height = element.height! * scale
         metrics.boundingBoxDescent = metrics.height
         metrics.boundingBoxAscent = 0
+      } else if (element.type === ElementType.LABEL) {
+        const {
+          defaultSize,
+          label: { defaultPadding }
+        } = this.options
+        ctx.font = this.getElementFont(element)
+        const fontMetrics = this.textParticle.measureText(ctx, element)
+        metrics.width =
+          (fontMetrics.width + defaultPadding[1] + defaultPadding[3]) * scale
+        metrics.height = (element.size || defaultSize) * scale
+        metrics.boundingBoxDescent = 0
+        metrics.boundingBoxAscent =
+          (defaultPadding[0] + fontMetrics.actualBoundingBoxAscent) * scale
       } else {
         // 设置上下标真实字体尺寸
         const size = element.size || defaultSize
@@ -1758,16 +1824,14 @@ export class Draw {
         if (element.letterSpacing) {
           metrics.width += element.letterSpacing * scale
         }
-        // 零宽字符ascent默认为：基线元素ascent
-        metrics.boundingBoxAscent =
-          (element.value === ZERO
-            ? this.textParticle.getBasisWordBoundingBoxAscent(
-                ctx,
-                element.font!
-              )
-            : fontMetrics.actualBoundingBoxAscent) * scale
+        // 使用基于字体的基准度量以确保一致的行高，避免字符特定度量导致的布局跳动
+        const basisMetrics = this.textParticle.measureBasisWord(
+          ctx,
+          element.font!
+        )
+        metrics.boundingBoxAscent = basisMetrics.actualBoundingBoxAscent * scale
         metrics.boundingBoxDescent =
-          fontMetrics.actualBoundingBoxDescent * scale
+          basisMetrics.actualBoundingBoxDescent * scale
         if (element.type === ElementType.SUPERSCRIPT) {
           metrics.boundingBoxAscent += metrics.height / 2
         } else if (element.type === ElementType.SUBSCRIPT) {
@@ -1950,6 +2014,19 @@ export class Draw {
       }
       // 行结束时逻辑
       if (isWrap || i === elementList.length - 1) {
+        // 打印模式下隐藏行元素均为隐藏元素 => 行不显示
+        if (
+          this.mode === EditorMode.PRINT &&
+          this.options.modeRule[EditorMode.PRINT].filterHideElementRow
+        ) {
+          const isAllHidden = curRow.elementList
+            .filter(el => el.value !== ZERO)
+            .every(el => el.hide || el.control?.hide || el.area?.hide)
+          if (isAllHidden) {
+            curRow.height = 0
+            curRow.ascent = 0
+          }
+        }
         // 换行原因：宽度不足
         curRow.isWidthNotEnough = isWidthNotEnough && !isForceBreak
         // 两端对齐、分散对齐
@@ -1971,17 +2048,6 @@ export class Draw {
             el.metrics.width += gap
           }
           curRow.width = availableWidth
-        }
-        // 行距离顶部偏移量等于行高时 => 行增加默认标准元素偏移量
-        // 如整行都是空格测量偏移量为0，导致行塌陷
-        if (curRow.ascent === rowMargin) {
-          const boundingBoxDescent =
-            this.textParticle.getBasisWordBoundingBoxAscent(
-              ctx,
-              element.font!
-            ) * scale
-          curRow.ascent += boundingBoxDescent
-          curRow.height += boundingBoxDescent
         }
       }
       // 重新计算坐标、页码、下一行首行元素环绕交叉
@@ -2202,6 +2268,9 @@ export class Draw {
         } else if (element.type === ElementType.HYPERLINK) {
           this.textParticle.complete()
           this.hyperlinkParticle.render(ctx, element, x, y + offsetY)
+        } else if (element.type === ElementType.LABEL) {
+          this.textParticle.complete()
+          this.labelParticle.render(ctx, element, x, y + offsetY)
         } else if (element.type === ElementType.DATE) {
           const nextElement = curRow.elementList[j + 1]
           // 释放之前的
@@ -2493,7 +2562,6 @@ export class Draw {
     ctx: CanvasRenderingContext2D,
     payload: IDrawFloatPayload
   ) {
-    const { scale } = this.options
     const floatPositionList = this.position.getFloatPositionList()
     const { imgDisplays, pageNo } = payload
     for (let e = 0; e < floatPositionList.length; e++) {
@@ -2507,13 +2575,8 @@ export class Draw {
         imgDisplays.includes(element.imgDisplay) &&
         element.type === ElementType.IMAGE
       ) {
-        const imgFloatPosition = element.imgFloatPosition!
-        this.imageParticle.render(
-          ctx,
-          element,
-          imgFloatPosition.x * scale,
-          imgFloatPosition.y * scale
-        )
+        const { x, y } = this.position.getFloatPositionCoordinate(floatPosition)
+        this.imageParticle.render(ctx, element, x, y)
       }
     }
   }
@@ -2542,6 +2605,7 @@ export class Draw {
       pageBorder
     } = this.options
     const isPrintMode = this.mode === EditorMode.PRINT
+    const isContinuityMode = pageMode === PageMode.CONTINUITY
     const innerWidth = this.getInnerWidth()
     const ctx = this.ctxList[pageNo]
     // 判断当前激活区域-非正文区域时元素透明度降低
@@ -2558,8 +2622,12 @@ export class Draw {
     if (!isPrintMode) {
       this.area.render(ctx, pageNo)
     }
-    // 绘制水印
-    if (pageMode !== PageMode.CONTINUITY && this.options.watermark.data) {
+    // 绘制水印（底层）
+    if (
+      !isContinuityMode &&
+      this.options.watermark.data &&
+      this.options.watermark.layer === WatermarkLayer.BOTTOM
+    ) {
       this.waterMark.render(ctx, pageNo)
     }
     // 绘制页边距
@@ -2626,6 +2694,14 @@ export class Draw {
     // 绘制涂鸦
     if (this.isGraffitiMode()) {
       this.graffiti.render(ctx, pageNo)
+    }
+    // 绘制水印（顶层）
+    if (
+      !isContinuityMode &&
+      this.options.watermark.data &&
+      this.options.watermark.layer === WatermarkLayer.TOP
+    ) {
+      this.waterMark.render(ctx, pageNo)
     }
   }
 
@@ -2891,6 +2967,10 @@ export class Draw {
     this.globalEvent.removeEvent()
     this.scrollObserver.removeEvent()
     this.selectionObserver.removeEvent()
+    this.workerManager.destroy()
+    this.magnifier.destroy()
+    this.accessibility.destroy()
+    this.lazyRenderIntersectionObserver?.disconnect()
   }
 
   public clearSideEffect() {

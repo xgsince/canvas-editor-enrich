@@ -6,6 +6,8 @@ import { defaultCursorOption } from '../dataset/constant/Cursor'
 import { defaultFooterOption } from '../dataset/constant/Footer'
 import { defaultGroupOption } from '../dataset/constant/Group'
 import { defaultHeaderOption } from '../dataset/constant/Header'
+import { defaultLabelOption } from '../dataset/constant/Label'
+import { defaultImgCaptionOption } from '../dataset/constant/ImgCaption'
 import { defaultLineBreak } from '../dataset/constant/LineBreak'
 import { defaultPageBreakOption } from '../dataset/constant/PageBreak'
 import { defaultPageNumberOption } from '../dataset/constant/PageNumber'
@@ -17,15 +19,22 @@ import { defaultTitleOption } from '../dataset/constant/Title'
 import { defaultWatermarkOption } from '../dataset/constant/Watermark'
 import { defaultZoneOption } from '../dataset/constant/Zone'
 import { defaultLineNumberOption } from '../dataset/constant/LineNumber'
+import { defaultListOption } from '../dataset/constant/List'
+import { defaultMagnifierOption } from '../dataset/constant/Magnifier'
+import { defaultAccessibilityOption } from '../dataset/constant/Accessibility'
+import { IAccessibilityOption } from '../interface/Accessibility'
 import { IBackgroundOption } from '../interface/Background'
 import { ICheckboxOption } from '../interface/Checkbox'
 import { DeepRequired } from '../interface/Common'
 import { IControlOption } from '../interface/Control'
 import { ICursorOption } from '../interface/Cursor'
 import { IEditorOption, IModeRule } from '../interface/Editor'
+import { IMagnifierOption } from '../interface/Magnifier'
 import { IFooter } from '../interface/Footer'
 import { IGroup } from '../interface/Group'
 import { IHeader } from '../interface/Header'
+import { ILabelOption } from '../interface/Label'
+import { IImgCaptionOption, IListOption } from '../interface/Element'
 import { ILineBreakOption } from '../interface/LineBreak'
 import { IPageBreak } from '../interface/PageBreak'
 import { IPageNumber } from '../interface/PageNumber'
@@ -145,6 +154,26 @@ export function mergeOption(
     ...defaultGraffitiOption,
     ...options.graffiti
   }
+  const labelOptions: Required<ILabelOption> = {
+    ...defaultLabelOption,
+    ...options.label
+  }
+  const imgCaptionOptions: Required<IImgCaptionOption> = {
+    ...defaultImgCaptionOption,
+    ...options.imgCaption
+  }
+  const listOptions: Required<IListOption> = {
+    ...defaultListOption,
+    ...options.list
+  }
+  const magnifierOptions: Required<IMagnifierOption> = {
+    ...defaultMagnifierOption,
+    ...options.magnifier
+  }
+  const accessibilityOptions: Required<IAccessibilityOption> = {
+    ...defaultAccessibilityOption,
+    ...options.accessibility
+  }
   const modeRuleOption: DeepRequired<IModeRule> = {
     print: {
       ...defaultModeRuleOption.print,
@@ -228,6 +257,11 @@ export function mergeOption(
     pageBorder: pageBorderOptions,
     badge: badgeOptions,
     modeRule: modeRuleOption,
-    graffiti: graffitiOptions
+    graffiti: graffitiOptions,
+    label: labelOptions,
+    imgCaption: imgCaptionOptions,
+    list: listOptions,
+    magnifier: magnifierOptions,
+    accessibility: accessibilityOptions
   }
 }
