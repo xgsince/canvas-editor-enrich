@@ -169,6 +169,7 @@ export interface IReadonlyModeRule {
 
 export interface IFormModeRule {
   controlDeletableDisabled?: boolean
+  filterHideElementRow?: boolean
 }
 
 export interface IModeRule {

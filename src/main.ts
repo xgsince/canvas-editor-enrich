@@ -1,4 +1,4 @@
-import { commentList, data, options, template } from './mock'
+import { template } from './mock'
 import './style.css'
 import prism from 'prismjs'
 import Editor, {
@@ -39,71 +39,74 @@ window.onload = function () {
 
   // 1. 初始化编辑器
   const container = document.querySelector<HTMLDivElement>('.editor')!
+  // const instance = new Editor(
+  //   container,
+  //   {
+  //     header: [],
+  //     main: <IElement[]>data,
+  //     footer: []
+  //   },
+  //   options
+  // )
   const instance = new Editor(
     container,
-    {
-      header: [
-        {
-          value: '第一人民医院',
-          size: 32,
-          rowFlex: RowFlex.CENTER
-        },
-        {
-          value: '\n门诊病历',
-          size: 18,
-          rowFlex: RowFlex.CENTER
-        },
-        {
-          value: '\n',
-          type: ElementType.SEPARATOR
-        }
-      ],
-      main: <IElement[]>data,
-      footer: [
-        {
-          value: 'canvas-editor',
-          size: 12
-        }
-      ]
-    },
-    options
+    template.data,
+    template.options,
   )
-    // const instance = new Editor(
-    // container,
-    // template.data,
-    // template.options,
-  //)
   console.log('实例: ', instance)
 
-    window.addEventListener(
+  const options = instance.command.getOptions()
+  instance.command.executeUpdateOptions(Object.assign({}, options, {
+    "pageMode": "continuity",
+    "header": {
+      "top": 10,
+      "disabled": true
+    },
+    "footer": {
+      "top": 10,
+      "disabled": true
+    },
+    "pageNumber": {
+      "bottom": 20,
+      "format": "第{pageNo}页/共{pageCount}页",
+      "disabled": true
+    },
+    "margins": [
+      0,
+      10,
+      0,
+      10
+    ]
+  }))
+  //   instance.command.executeInsertArea(
+  //    {
+  //     id: 'area-1',
+  //      value: [],
+  //      area: {
+  //        placeholder: {
+  //          data: `请在此输入内容...`,
+  //        },
+  //        deletable: true,
+  //      }
+  //    },
+  //  )
+
+  window.addEventListener(
     'message',
     function (event) {
-      if(event.data.templateJson){
+      if (event.data.templateJson) {
         const templateObj = JSON.parse(event.data.templateJson)
         console.log('接收到模板数据', templateObj)
         //instance.command.executeSetValue(templateObj.data, templateObj.options)//options没实现
         instance.command.executeSetValue(templateObj.data)
         instance.command.executeUpdateOptions(templateObj.options)
         instance.command.executePaperSize(templateObj.options.width, templateObj.options.height)
-      }else{
+      } else {
         instance.command.executeSetValue(template.data as Partial<IEditorData>, template.options as ISetValueOption)
       }
     },
     false
   )
-
-  instance.command.executeInsertArea(
-   {
-    id: 'area-1',
-     value: [],
-     area: {
-       placeholder: {
-         data: `请在此输入内容...`,
-       },
-       deletable: true,
-     }
-   },
- )
 
   // cypress使用
   Reflect.set(window, 'editor', instance)
@@ -112,28 +115,28 @@ window.onload = function () {
 
   const propertyForm = new Form('.property',
     (event: Event) => {
-      const target = event.target as HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement
-      if(target.name){
+      const target = event.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      if (target.name) {
         const conceptId = (target.closest('.form')?.querySelector('.form-item__input[name="conceptId"]') as HTMLInputElement).value
-        if(target.name !== 'value'){
+        if (target.name !== 'value') {
           const payload: ISetControlProperties = {
             conceptId: conceptId,
-            properties: { }
+            properties: {}
           }
-          if(target.type === 'checkbox' || target.type === 'radio'){
+          if (target.type === 'checkbox' || target.type === 'radio') {
             if (target instanceof HTMLInputElement) {
-              payload.properties = {[target.name]: target.checked}
+              payload.properties = { [target.name]: target.checked }
             }
-          }else{
-            if(target.name === 'valueSets'){
-              payload.properties = {valueSets: JSON.parse(target.value)}
-            }else{
-              payload.properties = {[target.name]: target.value}
+          } else {
+            if (target.name === 'valueSets') {
+              payload.properties = { valueSets: JSON.parse(target.value) }
+            } else {
+              payload.properties = { [target.name]: target.value }
             }
           }
           instance.command.executeSetControlProperties(payload)
         } else {
-          const values = target.value.split(',').filter(v=>v.trim().length > 0).map(v=>({value:v}))
+          const values = target.value.split(',').filter(v => v.trim().length > 0).map(v => ({ value: v }))
           const payload: ISetControlValueOption = {
             conceptId: conceptId,
             value: values
@@ -149,52 +152,54 @@ window.onload = function () {
       'click',
       async evt => {
         const positionContext = instance.command.getPositionContextByEvent(evt)
-        if(positionContext?.element?.control){
+        if (positionContext?.element?.control) {
           const payload: IGetControlValueOption = {
             conceptId: positionContext?.element?.control?.conceptId
           }
           const controls = instance.command.getControlValue(payload)
           controlProperty(positionContext?.element?.control?.type, controls)
-        }else{
+        } else {
           const wordCount = await instance.command.getWordCount()
-          propertyForm.setOptions({data: [
-            {
-              type: 'span',
-              label: '文件名',
-              name: 'fileName',
-              value: ''
-            },{
-              type: 'span',
-              label: '字符数',
-              name: 'charLength',
-              value: wordCount
-            },{
-              type: 'span',
-              label: '字符集',
-              name: 'charSet',
-              value: 'UTF-8'
-            },{
-              type: 'span',
-              label: '创建人',
-              name: 'creator',
-              value: ''
-            },{
-              type: 'span',
-              label: '创建时间',
-              name: 'createTime',
-              value: ''
-            },{
-              type: 'span',
-              label: '修改人',
-              name: 'modifier',
-              value: ''
-            },{
-              type: 'span',
-              label: '修改时间',
-              name: 'modifyTime',
-              value: ''
-            },
-          ]})
+          propertyForm.setOptions({
+            data: [
+              {
+                type: 'span',
+                label: '文件名',
+                name: 'fileName',
+                value: ''
+              }, {
+                type: 'span',
+                label: '字符数',
+                name: 'charLength',
+                value: wordCount
+              }, {
+                type: 'span',
+                label: '字符集',
+                name: 'charSet',
+                value: 'UTF-8'
+              }, {
+                type: 'span',
+                label: '创建人',
+                name: 'creator',
+                value: ''
+              }, {
+                type: 'span',
+                label: '创建时间',
+                name: 'createTime',
+                value: ''
+              }, {
+                type: 'span',
+                label: '修改人',
+                name: 'modifier',
+                value: ''
+              }, {
+                type: 'span',
+                label: '修改时间',
+                name: 'modifyTime',
+                value: ''
+              },
+            ]
+          })
         }
       }
     )
@@ -202,7 +207,7 @@ window.onload = function () {
 
   const controlProperty = function (type?: string, controls?: IGetControlValueResult | null) {
     const control = controls?.at(0)
-    const config:IFormOptions = {
+    const config: IFormOptions = {
       data: [
         {
           type: 'text',
@@ -313,22 +318,22 @@ window.onload = function () {
             label: '分隔符',
             name: 'multiSelectDelimiter',
             value: control?.multiSelectDelimiter
-          },{
-            type: 'select',
-            label: '布局方向',
-            name: 'flexDirection',
-            value: control?.flexDirection,
-            options: [
-              {
-                label: '水平',
-                value: FlexDirection.ROW
-              },
-              {
-                label: '垂直',
-                value: FlexDirection.COLUMN
-              }
-            ]
-          }
+          }, {
+          type: 'select',
+          label: '布局方向',
+          name: 'flexDirection',
+          value: control?.flexDirection,
+          options: [
+            {
+              label: '水平',
+              value: FlexDirection.ROW
+            },
+            {
+              label: '垂直',
+              value: FlexDirection.COLUMN
+            }
+          ]
+        }
         )
         break
       case ControlType.RADIO:
@@ -348,22 +353,22 @@ window.onload = function () {
             height: 100,
             placeholder: `请输入值集JSON，例：\n[{\n"value":"有",\n"code":"98175"\n}]`,
             value: JSON.stringify(control?.valueSets || [])
-          },{
-            type: 'select',
-            label: '布局方向',
-            name: 'flexDirection',
-            value: control?.flexDirection,
-            options: [
-              {
-                label: '水平',
-                value: FlexDirection.ROW
-              },
-              {
-                label: '垂直',
-                value: FlexDirection.COLUMN
-              }
-            ]
-          }
+          }, {
+          type: 'select',
+          label: '布局方向',
+          name: 'flexDirection',
+          value: control?.flexDirection,
+          options: [
+            {
+              label: '水平',
+              value: FlexDirection.ROW
+            },
+            {
+              label: '垂直',
+              value: FlexDirection.COLUMN
+            }
+          ]
+        }
         )
         break
       case ControlType.DATE:
@@ -443,104 +448,104 @@ window.onload = function () {
         label: '下划线',
         name: 'underline',
         value: control?.underline || false
-      },{
-        type: 'checkbox',
-        label: '边框',
-        name: 'border',
-        value: control?.border || false
-      },{
-        type: 'checkbox',
-        label: '只读',
-        name: 'disabled',
-        value: control?.disabled || false
-      },{
-        type: 'checkbox',
-        label: '可删除',
-        name: 'deletable',
-        value: control?.deletable || false
-      },{
-        type: 'text',
-        label: '前缀',
-        name: 'preText',
-        value: control?.preText
-      },{
-        type: 'text',
-        label: '后缀',
-        name: 'postText',
-        value: control?.postText
-      },{
-        type: 'number',
-        label: '最小宽度',
-        name: 'minWidth',
-        value: control?.minWidth
-      },{
-        type: 'select',
-        label: '对齐',
-        name: 'rowFlex',
-        value: control?.rowFlex,
-        options: [
-          {
-            label: '居左',
-            value: RowFlex.LEFT
-          },
-          {
-            label: '居中',
-            value: RowFlex.CENTER
-          },
-          {
-            label: '居右',
-            value: RowFlex.RIGHT
-          }
-        ]
-      },{
-        type: 'text',
-        label: '字体',
-        name: 'font',
-        value: control?.font
-      },{
-        type: 'number',
-        label: '大小',
-        name: 'size',
-        value: control?.size
-      },{
-        type: 'checkbox',
-        label: '加粗',
-        name: 'bold',
-        value: control?.bold
-      },{
-        type: 'text',
-        label: '高亮',
-        name: 'highlight',
-        value: control?.highlight
-      },{
-        type: 'select',
-        label: '缩进',
-        name: 'indentation',
-        value: control?.indentation,
-        options: [
-          {
-            label: '',
-            value: ''
-          },
-          {
-            label: '从行起始位置缩进',
-            value: ControlIndentation.ROW_START
-          },
-          {
-            label: '从值起始位置缩进',
-            value: ControlIndentation.VALUE_START
-          }
-        ]
-      }
+      }, {
+      type: 'checkbox',
+      label: '边框',
+      name: 'border',
+      value: control?.border || false
+    }, {
+      type: 'checkbox',
+      label: '只读',
+      name: 'disabled',
+      value: control?.disabled || false
+    }, {
+      type: 'checkbox',
+      label: '可删除',
+      name: 'deletable',
+      value: control?.deletable || false
+    }, {
+      type: 'text',
+      label: '前缀',
+      name: 'preText',
+      value: control?.preText
+    }, {
+      type: 'text',
+      label: '后缀',
+      name: 'postText',
+      value: control?.postText
+    }, {
+      type: 'number',
+      label: '最小宽度',
+      name: 'minWidth',
+      value: control?.minWidth
+    }, {
+      type: 'select',
+      label: '对齐',
+      name: 'rowFlex',
+      value: control?.rowFlex,
+      options: [
+        {
+          label: '居左',
+          value: RowFlex.LEFT
+        },
+        {
+          label: '居中',
+          value: RowFlex.CENTER
+        },
+        {
+          label: '居右',
+          value: RowFlex.RIGHT
+        }
+      ]
+    }, {
+      type: 'text',
+      label: '字体',
+      name: 'font',
+      value: control?.font
+    }, {
+      type: 'number',
+      label: '大小',
+      name: 'size',
+      value: control?.size
+    }, {
+      type: 'checkbox',
+      label: '加粗',
+      name: 'bold',
+      value: control?.bold
+    }, {
+      type: 'text',
+      label: '高亮',
+      name: 'highlight',
+      value: control?.highlight
+    }, {
+      type: 'select',
+      label: '缩进',
+      name: 'indentation',
+      value: control?.indentation,
+      options: [
+        {
+          label: '',
+          value: ''
+        },
+        {
+          label: '从行起始位置缩进',
+          value: ControlIndentation.ROW_START
+        },
+        {
+          label: '从值起始位置缩进',
+          value: ControlIndentation.VALUE_START
+        }
+      ]
+    }
     )
 
     propertyForm.setOptions(config)
   }
 
   instance.eventBus.on('controlContentChange', (payload: IControlContentChangeResult) => {
-    const valueInput = document.querySelector('.form-item__input[name="value"]') as HTMLInputElement|HTMLTextAreaElement
-    valueInput && (valueInput.value = payload.control.value?.map(v=>v.value).join(',') || '')
-    const codeInput = document.querySelector('.form-item__input[name="code"]') as HTMLInputElement|HTMLSelectElement
+    const valueInput = document.querySelector('.form-item__input[name="value"]') as HTMLInputElement | HTMLTextAreaElement
+    valueInput && (valueInput.value = payload.control.value?.map(v => v.value).join(',') || '')
+    const codeInput = document.querySelector('.form-item__input[name="code"]') as HTMLInputElement | HTMLSelectElement
     codeInput && (codeInput.value = payload.control.code || '')
   })
 
@@ -1098,9 +1103,9 @@ window.onload = function () {
             gap:
               repeat && watermark.horizontalGap && watermark.verticalGap
                 ? [
-                    Number(watermark.horizontalGap),
-                    Number(watermark.verticalGap)
-                  ]
+                  Number(watermark.horizontalGap),
+                  Number(watermark.verticalGap)
+                ]
                 : undefined
           })
         }
@@ -1217,10 +1222,10 @@ window.onload = function () {
                 highlight: '#eff',
                 value: value
                   ? [
-                      {
-                        value
-                      }
-                    ]
+                    {
+                      value
+                    }
+                  ]
                   : null,
                 placeholder
               }
@@ -1451,10 +1456,10 @@ window.onload = function () {
                 dateFormat,
                 value: value
                   ? [
-                      {
-                        value
-                      }
-                    ]
+                    {
+                      value
+                    }
+                  ]
                   : null,
                 placeholder
               }
@@ -1506,10 +1511,10 @@ window.onload = function () {
                 highlight: '#eff',
                 value: value
                   ? [
-                      {
-                        value
-                      }
-                    ]
+                    {
+                      value
+                    }
+                  ]
                   : null,
                 placeholder
               }
@@ -1808,18 +1813,17 @@ window.onload = function () {
 
   const printDom = document.querySelector<HTMLDivElement>('.menu-item__print')!
   printDom.title = `打印(${isApple ? '⌘' : 'Ctrl'}+P)`
-  printDom.onclick = function () {
+  printDom.onclick = async function () {
     console.log('print')
-    instance.command.executePrint()
+    await instance.command.executePrint()
   }
 
   const exportDom = document.querySelector<HTMLDivElement>('.menu-item__export')!
   exportDom.onclick = async function () {
     const value = await instance.command.getValueAsync()
-    // const html = instance.command.getHTML()
     // const editorOption = instance.command.getOptions()
     // const controlList = instance.command.getControlList()
-    console.log(JSON.stringify(value))
+    console.log(value)
     navigator.clipboard.writeText(JSON.stringify(value))
       .then(() => {
         alert('已复制到剪贴板')
@@ -2110,61 +2114,6 @@ window.onload = function () {
     })
   }
 
-  // 模拟批注
-  const commentDom = document.querySelector<HTMLDivElement>('.comment')!
-  async function updateComment() {
-    const groupIds = await instance.command.getGroupIds()
-    for (const comment of commentList) {
-      const activeCommentDom = commentDom.querySelector<HTMLDivElement>(
-        `.comment-item[data-id='${comment.id}']`
-      )
-      // 编辑器是否存在对应成组id
-      if (groupIds.includes(comment.id)) {
-        // 当前dom是否存在-不存在则追加
-        if (!activeCommentDom) {
-          const commentItem = document.createElement('div')
-          commentItem.classList.add('comment-item')
-          commentItem.setAttribute('data-id', comment.id)
-          commentItem.onclick = () => {
-            instance.command.executeLocationGroup(comment.id)
-          }
-          commentDom.append(commentItem)
-          // 选区信息
-          const commentItemTitle = document.createElement('div')
-          commentItemTitle.classList.add('comment-item__title')
-          commentItemTitle.append(document.createElement('span'))
-          const commentItemTitleContent = document.createElement('span')
-          commentItemTitleContent.innerText = comment.rangeText
-          commentItemTitle.append(commentItemTitleContent)
-          const closeDom = document.createElement('i')
-          closeDom.onclick = () => {
-            instance.command.executeDeleteGroup(comment.id)
-          }
-          commentItemTitle.append(closeDom)
-          commentItem.append(commentItemTitle)
-          // 基础信息
-          const commentItemInfo = document.createElement('div')
-          commentItemInfo.classList.add('comment-item__info')
-          const commentItemInfoName = document.createElement('span')
-          commentItemInfoName.innerText = comment.userName
-          const commentItemInfoDate = document.createElement('span')
-          commentItemInfoDate.innerText = comment.createdDate
-          commentItemInfo.append(commentItemInfoName)
-          commentItemInfo.append(commentItemInfoDate)
-          commentItem.append(commentItemInfo)
-          // 详细评论
-          const commentItemContent = document.createElement('div')
-          commentItemContent.classList.add('comment-item__content')
-          commentItemContent.innerText = comment.content
-          commentItem.append(commentItemContent)
-          commentDom.append(commentItem)
-        }
-      } else {
-        // 编辑器内不存在对应成组id则dom则移除
-        activeCommentDom?.remove()
-      }
-    }
-  }
   // 8. 内部事件监听
   instance.listener.rangeStyleChange = function (payload) {
     // 控件类型
@@ -2317,32 +2266,13 @@ window.onload = function () {
       listDom.classList.remove('active')
     }
 
-    // 批注
-    commentDom
-      .querySelectorAll<HTMLDivElement>('.comment-item')
-      .forEach(commentItemDom => {
-        commentItemDom.classList.remove('active')
-      })
-    if (payload.groupIds) {
-      const [id] = payload.groupIds
-      const activeCommentDom = commentDom.querySelector<HTMLDivElement>(
-        `.comment-item[data-id='${id}']`
-      )
-      if (activeCommentDom) {
-        activeCommentDom.classList.add('active')
-        scrollIntoView(commentDom, activeCommentDom)
-      }
-    }
-
     // 行列信息
     const rangeContext = instance.command.getRangeContext()
     if (rangeContext) {
-      document.querySelector<HTMLSpanElement>('.row-no')!.innerText = `${
-        rangeContext.startRowNo + 1
-      }`
-      document.querySelector<HTMLSpanElement>('.col-no')!.innerText = `${
-        rangeContext.startColNo + 1
-      }`
+      document.querySelector<HTMLSpanElement>('.row-no')!.innerText = `${rangeContext.startRowNo + 1
+        }`
+      document.querySelector<HTMLSpanElement>('.col-no')!.innerText = `${rangeContext.startColNo + 1
+        }`
     }
   }
 
@@ -2357,9 +2287,8 @@ window.onload = function () {
   }
 
   instance.listener.intersectionPageNoChange = function (payload) {
-    document.querySelector<HTMLSpanElement>('.page-no')!.innerText = `${
-      payload + 1
-    }`
+    document.querySelector<HTMLSpanElement>('.page-no')!.innerText = `${payload + 1
+      }`
   }
 
   instance.listener.pageScaleChange = function (payload) {
@@ -2400,19 +2329,14 @@ window.onload = function () {
   const handleContentChange = async function () {
     // 字数
     const wordCount = await instance.command.getWordCount()
-    document.querySelector<HTMLSpanElement>('.word-count')!.innerText = `${
-      wordCount || 0
-    }`
+    document.querySelector<HTMLSpanElement>('.word-count')!.innerText = `${wordCount || 0
+      }`
     // 目录
     if (isCatalogShow) {
       nextTick(() => {
         updateCatalog()
       })
     }
-    // 批注
-    nextTick(() => {
-      updateComment()
-    })
   }
   instance.listener.contentChange = debounce(handleContentChange, 200)
   handleContentChange()
@@ -2423,44 +2347,6 @@ window.onload = function () {
 
   // 9. 右键菜单注册
   instance.register.contextMenuList([
-    {
-      name: '批注',
-      when: payload => {
-        return (
-          !payload.isReadonly &&
-          payload.editorHasSelection &&
-          payload.zone === EditorZone.MAIN
-        )
-      },
-      callback: (command: Command) => {
-        new Dialog({
-          title: '批注',
-          data: [
-            {
-              type: 'textarea',
-              label: '批注',
-              height: 100,
-              name: 'value',
-              required: true,
-              placeholder: '请输入批注'
-            }
-          ],
-          onConfirm: payload => {
-            const value = payload.find(p => p.name === 'value')?.value
-            if (!value) return
-            const groupId = command.executeSetGroup()
-            if (!groupId) return
-            commentList.push({
-              id: groupId,
-              content: value,
-              userName: 'Hufe',
-              rangeText: command.getRangeText(),
-              createdDate: new Date().toLocaleString()
-            })
-          }
-        })
-      }
-    },
     {
       name: '新增题注',
       icon: 'caption',

@@ -38,8 +38,8 @@ const colorIndex: number[] = colorText
     const i = text.indexOf(b)
     return ~i
       ? Array(b.length)
-          .fill(i)
-          .map((_, j) => i + j)
+        .fill(i)
+        .map((_, j) => i + j)
       : []
   })
   .flat()
@@ -51,8 +51,8 @@ const highlightIndex: number[] = highlightText
     const i = text.indexOf(b)
     return ~i
       ? Array(b.length)
-          .fill(i)
-          .map((_, j) => i + j)
+        .fill(i)
+        .map((_, j) => i + j)
       : []
   })
   .flat()
@@ -128,7 +128,7 @@ elementList.splice(94, 0, {
     postfix: '',
     highlight: '#eff',
     selectExclusiveOptions: {
-inputAble:true
+      inputAble: true
     },
     valueSets: [
       {
@@ -532,12 +532,26 @@ export const commentList: IComment[] = [
 ]
 
 export const options: IEditorOption = {
-  margins: [100, 120, 100, 120],
+  width: 565,
+  height: 398,
+  margins: [20, 20, 20, 20],
+  header: {
+    top: 0
+  },
+  footer: {
+    bottom: 0
+  },
+  modeRule: {
+    print: {
+      backgroundDisabled: true,
+    }
+  },
   watermark: {
     data: 'CANVAS-EDITOR',
     size: 120
   },
   pageNumber: {
+    bottom: 10,
     format: '第{pageNo}页/共{pageCount}页'
   },
   placeholder: {
@@ -549,379 +563,536 @@ export const options: IEditorOption = {
   control: {
     prefix: '\u200c',
     postfix: '\u200c',
-    activeBackgroundColor: '#eff',
+    // activeBackgroundColor: '#eff',
   },
-  maskMargin: [60, 0, 30, 0] // 菜单栏高度60，底部工具栏30为遮盖层
+  maskMargin: [0, 0, 0, 0] // 菜单栏高度60，底部工具栏30为遮盖层
 }
 
 export const template = {
-  data: {
-    header: [
+  "version": "0.9.135",
+  "data": {
+    "header": [
       {
-        value: '第一人民医院',
-        size: 18,
-        rowFlex: 'center',
+        "value": "第一人民医院",
+        "size": 18,
+        "rowFlex": "center"
       },
       {
-        value: '\n门诊病历',
-        size: 16,
-        rowFlex: 'center',
+        "value": "门诊病历",
+        "size": 16,
+        "rowFlex": "center"
       },
       {
-        value: '\n',
-        type: 'separator',
-        width: 525,
+        "value": "\n患者：",
+        "rowFlex": "left"
       },
+      {
+        "value": "",
+        "type": "control",
+        "rowFlex": "left",
+        "control": {
+          "conceptId": "patientDesc",
+          "type": "text",
+          "value": [
+            {
+              "value": "范隆玉 男 50岁",
+              "rowFlex": "left"
+            }
+          ],
+          "placeholder": "患者基本信息",
+          "disabled": true
+        }
+      },
+      {
+        "value": "  科室："
+      },
+      {
+        "value": "",
+        "type": "control",
+        "control": {
+          "conceptId": "dept",
+          "type": "text",
+          "value": [
+            {
+              "value": "中医内科"
+            }
+          ],
+          "placeholder": "就诊科室",
+          "disabled": true
+        }
+      },
+      {
+        "value": "  费别："
+      },
+      {
+        "value": "",
+        "type": "control",
+        "control": {
+          "conceptId": "settleType",
+          "type": "text",
+          "value": [
+            {
+              "value": "自费"
+            }
+          ],
+          "placeholder": "自费或医保",
+          "disabled": true
+        }
+      },
+      {
+        "value": "  日期：",
+        "rowFlex": "left"
+      },
+      {
+        "value": "",
+        "type": "control",
+        "rowFlex": "left",
+        "control": {
+          "conceptId": "encounterDate",
+          "type": "text",
+          "value": [
+            {
+              "value": "2026-02-05",
+              "rowFlex": "left"
+            }
+          ],
+          "placeholder": "就诊日期",
+          "disabled": true
+        }
+      },
+      {
+        "value": "\n",
+        "type": "separator",
+        "width": 525
+      }
     ],
-    main: [
+    "main": [
       {
-        value: '主诉：',
-        bold: true,
+        "value": "主诉：",
+        "bold": true
       },
       {
-        value: '',
-        type: 'control',
-        control: {
-          conceptId: 'zs',
-          type: 'text',
-          highlight: '#eff',
-          minWidth: 600,
-          value: [],
-          placeholder: '主诉',
-        },
+        "value": "",
+        "type": "control",
+        "control": {
+          "conceptId": "zs",
+          "type": "text",
+          "value": [],
+          "placeholder": "主诉"
+        }
       },
       {
-        value: '\n现病史：',
-        bold: true,
+        "value": "\n现病史：",
+        "bold": true
       },
       {
-        value: '',
-        type: 'control',
-        control: {
-          conceptId: 'xbs',
-          type: 'text',
-          highlight: '#eff',
-          minWidth: 600,
-          value: [],
-          placeholder: '现病史',
-        },
+        "value": "",
+        "type": "control",
+        "control": {
+          "conceptId": "xbs",
+          "type": "text",
+          "value": [],
+          "placeholder": "现病史"
+        }
       },
       {
-        value: '\n既往史：',
-        bold: true,
+        "value": "\n既往史：",
+        "bold": true
       },
       {
-        value: '',
-        type: 'control',
-        control: {
-          conceptId: 'jws',
-          type: 'text',
-          highlight: '#eff',
-          minWidth: 600,
-          value: [],
-          placeholder: '既往史',
-        },
+        "value": "",
+        "type": "control",
+        "control": {
+          "conceptId": "jws",
+          "type": "text",
+          "value": [],
+          "placeholder": "既往史"
+        }
       },
       {
-        value: '\n过敏史：',
-        bold: true,
+        "value": "\n过敏史：",
+        "bold": true
       },
       {
-        value: '',
-        type: 'control',
-        control: {
-          conceptId: 'gms',
-          type: 'text',
-          highlight: '#eff',
-          minWidth: 600,
-          value: [],
-          placeholder: '过敏史',
-        },
+        "value": "",
+        "type": "control",
+        "control": {
+          "conceptId": "gms",
+          "type": "text",
+          "value": [],
+          "placeholder": "过敏史"
+        }
       },
       {
-        value: '\n体格检查：',
-        bold: true,
+        "value": "\n体格检查：",
+        "bold": true
       },
       {
-        value: '',
-        type: 'control',
-        control: {
-          conceptId: 'tgjc',
-          type: 'text',
-          highlight: '#eff',
-          minWidth: 600,
-          value: [],
-          placeholder: '查体录入',
-        },
+        "value": "",
+        "type": "control",
+        "control": {
+          "conceptId": "tgjc",
+          "type": "text",
+          "value": [],
+          "placeholder": "查体录入"
+        }
       },
       {
-        value: '\n辅助检查：',
-        bold: true,
+        "value": "",
+        "type": "area",
+        "valueList": [
+          {
+            "value": "辅助检查：",
+            "bold": true
+          },
+          {
+            "value": "血常规，尿常规，上腹部CT平扫，X线计算机体层(CT)成像",
+            "type": "control",
+            "conceptId": "fzjc"
+          },
+          {
+            "value": "\n诊断：",
+            "bold": true
+          },
+          {
+            "value": "上呼吸道感染",
+            "conceptId": "diag"
+          },
+          {
+            "value": "\n处置：",
+            "bold": true
+          },
+          {
+            "value": "\n"
+          },
+          {
+            "value": "茯苓 50g    \n10剂，打粉，每日1剂，每日一次",
+            "type": "text"
+          },
+          {
+            "value": "\n",
+            "type": "separator",
+            "dashArray": [
+              4,
+              4
+            ],
+            "width": 525
+          },
+          {
+            "value": "一次性采血器",
+            "type": "text"
+          },
+          {
+            "value": "\n",
+            "type": "separator",
+            "dashArray": [
+              4,
+              4
+            ],
+            "width": 525
+          },
+          {
+            "value": "氯化钠注射液  100ml  静脉滴注  每日2次  2天\n       注射用阿奇霉素  2支\n阿莫西林胶囊  2粒  口服  每日2次  3天",
+            "type": "text"
+          }
+        ],
+        "areaId": "hide_when_form",
+        "area": {
+          "hide": true
+        }
       },
       {
-        value: '',
-        type: 'control',
-        control: {
-          conceptId: 'fzjc',
-          type: 'text',
-          highlight: '#eff',
-          value: [],
-          placeholder: '引用检测检验医嘱',
-        },
+        "value": "\n注意事项：",
+        "bold": true
       },
       {
-        value: '\n诊断：',
-        bold: true,
-      },
-      {
-        value: '',
-        type: 'control',
-        control: {
-          conceptId: 'diagDesc',
-          type: 'text',
-          highlight: '#eff',
-          value: [],
-          placeholder: '引用诊断数据',
-          disabled: true,
-        },
-      },
-      {
-        value: '\n处置：\n',
-        bold: true,
-      },
-      {
-        value: '',
-        type: 'control',
-        control: {
-          conceptId: 'operation',
-          type: 'text',
-          highlight: '#eff',
-          value: [],
-          placeholder: '引用医嘱数据',
-          disabled: true,
-        },
-      },
-      {
-        value: '\n注意事项：',
-        bold: true,
-      },
-      {
-        value: '',
-        type: 'control',
-        control: {
-          conceptId: 'zysx',
-          type: 'text',
-          highlight: '#eff',
-          value: [],
-          placeholder: '注意事项',
-        },
-      },
+        "value": "",
+        "type": "control",
+        "control": {
+          "conceptId": "zysx",
+          "type": "text",
+          "value": [],
+          "placeholder": "注意事项"
+        }
+      }
     ],
-    footer: [],
+    "footer": []
   },
-  options: {
-    mode: 'form',
-    locale: 'zhCN',
-    defaultType: 'TEXT',
-    defaultColor: '#000000',
-    defaultFont: 'Microsoft YaHei',
-    defaultSize: 14,
-    minSize: 5,
-    maxSize: 72,
-    defaultRowMargin: 1,
-    defaultBasicRowMarginHeight: 8,
-    defaultTabWidth: 32,
-    width: 565,
-    height: 796,
-    scale: 1,
-    pageGap: 10,
-    underlineColor: '#000000',
-    strikeoutColor: '#FF0000',
-    rangeAlpha: 0.6,
-    rangeColor: '#AECBFA',
-    rangeMinWidth: 5,
-    searchMatchAlpha: 0.6,
-    searchMatchColor: '#FFFF00',
-    searchNavigateMatchColor: '#AAD280',
-    highlightAlpha: 0.6,
-    highlightMarginHeight: 8,
-    resizerColor: '#4182D9',
-    resizerSize: 5,
-    marginIndicatorSize: 35,
-    marginIndicatorColor: '#BABABA',
-    margins: [20, 20, 20, 20],
-    pageMode: 'paging',
-    renderMode: 'speed',
-    defaultHyperlinkColor: '#0000FF',
-    paperDirection: 'vertical',
-    inactiveAlpha: 0.6,
-    historyMaxRecordCount: 100,
-    wordBreak: 'break-word',
-    printPixelRatio: 3,
-    maskMargin: [60, 0, 30, 0],
-    letterClass: ['A-Za-z'],
-    contextMenuDisableKeys: [],
-    shortcutDisableKeys: [],
-    scrollContainerSelector: '',
-    pageOuterSelectionDisable: false,
-    watermark: {
-      data: '',
-      type: 'text',
-      width: 0,
-      height: 0,
-      color: '#AEB5C0',
-      opacity: 0.3,
-      size: 200,
-      font: 'Microsoft YaHei',
-      repeat: false,
-      gap: [10, 10],
-      numberType: 'arabic',
+  "options": {
+    "mode": "form",
+    "locale": "zhCN",
+    "defaultType": "TEXT",
+    "defaultColor": "#000000",
+    "defaultFont": "Microsoft YaHei",
+    "defaultSize": 16,
+    "minSize": 5,
+    "maxSize": 72,
+    "defaultRowMargin": 1,
+    "defaultBasicRowMarginHeight": 8,
+    "defaultTabWidth": 32,
+    "width": 565,
+    "height": 500,
+    "scale": 1,
+    "pageGap": 10,
+    "underlineColor": "#000000",
+    "strikeoutColor": "#FF0000",
+    "rangeAlpha": 0.6,
+    "rangeColor": "#AECBFA",
+    "rangeMinWidth": 5,
+    "searchMatchAlpha": 0.6,
+    "searchMatchColor": "#FFFF00",
+    "searchNavigateMatchColor": "#AAD280",
+    "highlightAlpha": 0.6,
+    "highlightMarginHeight": 8,
+    "resizerColor": "#4182D9",
+    "resizerSize": 5,
+    "marginIndicatorSize": 35,
+    "marginIndicatorColor": "#BABABA",
+    "margins": [
+      0,
+      20,
+      0,
+      20
+    ],
+    "pageMode": "paging",
+    "renderMode": "speed",
+    "defaultHyperlinkColor": "#0000FF",
+    "paperDirection": "vertical",
+    "inactiveAlpha": 0.6,
+    "historyMaxRecordCount": 100,
+    "wordBreak": "break-word",
+    "printPixelRatio": 3,
+    "maskMargin": [
+      60,
+      0,
+      30,
+      0
+    ],
+    "letterClass": [
+      "A-Za-z"
+    ],
+    "contextMenuDisableKeys": [],
+    "shortcutDisableKeys": [],
+    "scrollContainerSelector": "",
+    "pageOuterSelectionDisable": false,
+    "watermark": {
+      "data": "",
+      "type": "text",
+      "width": 0,
+      "height": 0,
+      "color": "#AEB5C0",
+      "opacity": 0.3,
+      "size": 200,
+      "font": "Microsoft YaHei",
+      "repeat": false,
+      "gap": [
+        10,
+        10
+      ],
+      "numberType": "arabic",
+      "layer": "bottom"
     },
-    pageNumber: {
-      bottom: 20,
-      size: 12,
-      font: 'Microsoft YaHei',
-      color: '#000000',
-      rowFlex: 'center',
-      format: '第{pageNo}页/共{pageCount}页',
-      numberType: 'arabic',
-      disabled: false,
-      startPageNo: 1,
-      fromPageNo: 0,
-      maxPageNo: null,
+    "pageNumber": {
+      "bottom": 20,
+      "size": 12,
+      "font": "Microsoft YaHei",
+      "color": "#000000",
+      "rowFlex": "center",
+      "format": "第{pageNo}页/共{pageCount}页",
+      "numberType": "arabic",
+      "startPageNo": 1,
+      "fromPageNo": 0,
+      "maxPageNo": null
     },
-    placeholder: {
-      data: '请输入正文',
-      color: '#DCDFE6',
-      opacity: 1,
-      size: 16,
-      font: 'Microsoft YaHei',
+    "placeholder": {
+      "data": "请输入正文",
+      "color": "#DCDFE6",
+      "opacity": 1,
+      "size": 16,
+      "font": "Microsoft YaHei"
     },
-    zone: {
-      tipDisabled: false,
+    "zone": {
+      "tipDisabled": false
     },
-    control: {
-      placeholderColor: '#9c9b9b',
-      bracketColor: '#000000',
-      prefix: '‌',
-      postfix: '‌',
-      borderWidth: 1,
-      borderColor: '#000000',
-      activeBackgroundColor: '#eff',
-      disabledBackgroundColor: '',
-      existValueBackgroundColor: '',
-      noValueBackgroundColor: '',
+    "control": {
+      "placeholderColor": "#9c9b9b",
+      "bracketColor": "#000000",
+      "prefix": "{",
+      "postfix": "}",
+      "borderWidth": 1,
+      "borderColor": "#000000",
+      "activeBackgroundColor": "",
+      "disabledBackgroundColor": "",
+      "existValueBackgroundColor": "",
+      "noValueBackgroundColor": ""
     },
-    table: {
-      tdPadding: [0, 5, 5, 5],
-      defaultTrMinHeight: 42,
-      defaultColMinWidth: 40,
-      defaultBorderColor: '#000000',
+    "table": {
+      "tdPadding": [
+        0,
+        5,
+        5,
+        5
+      ],
+      "defaultTrMinHeight": 42,
+      "defaultColMinWidth": 40,
+      "defaultBorderColor": "#000000",
+      "overflow": true
     },
-    header: {
-      top: 0,
-      inactiveAlpha: 1,
-      maxHeightRadio: 'half',
-      disabled: false,
-      editable: true,
+    "header": {
+      "top": 0,
+      "inactiveAlpha": 1,
+      "maxHeightRadio": "half",
+      "editable": true
     },
-    footer: {
-      bottom: 0,
-      inactiveAlpha: 1,
-      maxHeightRadio: 'half',
-      disabled: false,
-      editable: true,
+    "footer": {
+      "bottom": 0,
+      "inactiveAlpha": 1,
+      "maxHeightRadio": "half",
+      "editable": true
     },
-    checkbox: {
-      width: 14,
-      height: 14,
-      gap: 5,
-      lineWidth: 1,
-      fillStyle: '#5175f4',
-      strokeStyle: '#ffffff',
-      verticalAlign: 'bottom',
+    "checkbox": {
+      "width": 14,
+      "height": 14,
+      "gap": 5,
+      "lineWidth": 1,
+      "fillStyle": "#5175f4",
+      "strokeStyle": "#ffffff",
+      "checkFillStyle": "#5175f4",
+      "checkStrokeStyle": "#5175f4",
+      "checkMarkColor": "#ffffff",
+      "verticalAlign": "bottom"
     },
-    radio: {
-      width: 14,
-      height: 14,
-      gap: 5,
-      lineWidth: 1,
-      fillStyle: '#5175f4',
-      strokeStyle: '#000000',
-      verticalAlign: 'bottom',
+    "radio": {
+      "width": 14,
+      "height": 14,
+      "gap": 5,
+      "lineWidth": 1,
+      "fillStyle": "#5175f4",
+      "strokeStyle": "#000000",
+      "verticalAlign": "bottom"
     },
-    cursor: {
-      width: 1,
-      color: '#000000',
-      dragWidth: 2,
-      dragColor: '#0000FF',
-      dragFloatImageDisabled: false,
+    "cursor": {
+      "width": 1,
+      "color": "#000000",
+      "dragWidth": 2,
+      "dragColor": "#0000FF",
+      "dragFloatImageDisabled": false
     },
-    title: {
-      defaultFirstSize: 26,
-      defaultSecondSize: 24,
-      defaultThirdSize: 22,
-      defaultFourthSize: 20,
-      defaultFifthSize: 18,
-      defaultSixthSize: 16,
+    "title": {
+      "defaultFirstSize": 26,
+      "defaultSecondSize": 24,
+      "defaultThirdSize": 22,
+      "defaultFourthSize": 20,
+      "defaultFifthSize": 18,
+      "defaultSixthSize": 16
     },
-    group: {
-      opacity: 0.1,
-      backgroundColor: '#E99D00',
-      activeOpacity: 0.5,
-      activeBackgroundColor: '#E99D00',
-      disabled: false,
-      deletable: true,
+    "group": {
+      "opacity": 0.1,
+      "backgroundColor": "#E99D00",
+      "activeOpacity": 0.5,
+      "activeBackgroundColor": "#E99D00",
+      "disabled": false,
+      "deletable": true
     },
-    pageBreak: {
-      font: 'Microsoft YaHei',
-      fontSize: 12,
-      lineDash: [3, 1],
+    "pageBreak": {
+      "font": "Microsoft YaHei",
+      "fontSize": 12,
+      "lineDash": [
+        3,
+        1
+      ]
     },
-    background: {
-      color: '#FFFFFF',
-      image: '',
-      size: 'cover',
-      repeat: 'no-repeat',
-      applyPageNumbers: [],
+    "background": {
+      "color": "#FFFFFF",
+      "image": "",
+      "size": "cover",
+      "repeat": "no-repeat",
+      "applyPageNumbers": []
     },
-    lineBreak: {
-      disabled: true,
-      color: '#CCCCCC',
-      lineWidth: 1.5,
+    "lineBreak": {
+      "disabled": true,
+      "color": "#CCCCCC",
+      "lineWidth": 1.5
     },
-    separator: {
-      lineWidth: 1,
-      strokeStyle: '#000000',
+    "separator": {
+      "lineWidth": 1,
+      "strokeStyle": "#000000"
     },
-    lineNumber: {
-      size: 12,
-      font: 'Microsoft YaHei',
-      color: '#000000',
-      disabled: true,
-      right: 20,
-      type: 'continuity',
+    "lineNumber": {
+      "size": 12,
+      "font": "Microsoft YaHei",
+      "color": "#000000",
+      "disabled": true,
+      "right": 20,
+      "type": "continuity"
     },
-    pageBorder: {
-      color: '#000000',
-      lineWidth: 1,
-      padding: [0, 5, 0, 5],
-      disabled: true,
+    "pageBorder": {
+      "color": "#000000",
+      "lineWidth": 1,
+      "padding": [
+        0,
+        5,
+        0,
+        5
+      ],
+      "disabled": true
     },
-    badge: {
-      top: 0,
-      left: 5,
+    "badge": {
+      "top": 0,
+      "left": 5
     },
-    modeRule: {
-      print: {
-        imagePreviewerDisabled: false,
+    "modeRule": {
+      "print": {
+        "imagePreviewerDisabled": false,
+        "backgroundDisabled": false,
+        "filterEmptyControl": true,
+        "filterHideElementRow": true
       },
-      readonly: {
-        imagePreviewerDisabled: false,
+      "readonly": {
+        "imagePreviewerDisabled": false
       },
-      form: {
-        controlDeletableDisabled: false,
-      },
+      "form": {
+        "controlDeletableDisabled": false,
+        "filterHideElementRow": true
+      }
     },
-  },
+    "whiteSpace": {
+      "disabled": true,
+      "color": "#CCCCCC",
+      "radius": 1
+    },
+    "graffiti": {
+      "defaultLineColor": "#000000",
+      "defaultLineWidth": 2
+    },
+    "label": {
+      "defaultColor": "#1976d2",
+      "defaultBackgroundColor": "#e3f2fd",
+      "defaultBorderRadius": 4,
+      "defaultPadding": [
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    "imgCaption": {
+      "color": "#666666",
+      "font": "Microsoft YaHei",
+      "size": 12,
+      "top": 5
+    },
+    "list": {
+      "inheritStyle": false
+    },
+    "magnifier": {
+      "disabled": true,
+      "size": 120,
+      "zoom": 2,
+      "borderColor": "#efefef"
+    },
+    "accessibility": {
+      "disabled": true
+    }
+  }
 }
