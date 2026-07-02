@@ -1,4 +1,4 @@
-import { template } from './mock'
+import { data, options } from './mock'
 import './style.css'
 import prism from 'prismjs'
 import Editor, {
@@ -8,12 +8,10 @@ import Editor, {
   ControlState,
   ControlType,
   EditorMode,
-  EditorZone,
   ElementType,
   FlexDirection,
   IBlock,
   ICatalogItem,
-  IEditorData,
   IElement,
   KeyMap,
   ListStyle,
@@ -29,9 +27,8 @@ import { Dialog } from './components/dialog/Dialog'
 import { Form, IFormOptions } from './components/form/Form'
 import { formatPrismToken } from './utils/prism'
 import { Signature } from './components/signature/Signature'
-import { debounce, nextTick, scrollIntoView } from './utils'
+import { debounce, nextTick } from './utils'
 import { IControlContentChangeResult, IGetControlValueOption, IGetControlValueResult, ISetControlProperties, ISetControlValueOption } from './editor/interface/Control'
-import { ISetValueOption } from './editor/interface/Editor'
 
 window.onload = function () {
   const isApple =
@@ -39,45 +36,18 @@ window.onload = function () {
 
   // 1. 初始化编辑器
   const container = document.querySelector<HTMLDivElement>('.editor')!
-  // const instance = new Editor(
-  //   container,
-  //   {
-  //     header: [],
-  //     main: <IElement[]>data,
-  //     footer: []
-  //   },
-  //   options
-  // )
   const instance = new Editor(
     container,
-    template.data,
-    template.options,
+    {
+      header: [],
+      main: <IElement[]>data,
+      footer: []
+    },
+    options
   )
+
   console.log('实例: ', instance)
 
-  const options = instance.command.getOptions()
-  instance.command.executeUpdateOptions(Object.assign({}, options, {
-    "pageMode": "continuity",
-    "header": {
-      "top": 10,
-      "disabled": true
-    },
-    "footer": {
-      "top": 10,
-      "disabled": true
-    },
-    "pageNumber": {
-      "bottom": 20,
-      "format": "第{pageNo}页/共{pageCount}页",
-      "disabled": true
-    },
-    "margins": [
-      0,
-      10,
-      0,
-      10
-    ]
-  }))
   //   instance.command.executeInsertArea(
   //    {
   //     id: 'area-1',
@@ -102,7 +72,7 @@ window.onload = function () {
         instance.command.executeUpdateOptions(templateObj.options)
         instance.command.executePaperSize(templateObj.options.width, templateObj.options.height)
       } else {
-        instance.command.executeSetValue(template.data as Partial<IEditorData>, template.options as ISetValueOption)
+        console.log('接收到无效消息', event.data)
       }
     },
     false

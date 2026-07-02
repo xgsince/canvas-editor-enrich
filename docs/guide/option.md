@@ -109,6 +109,7 @@ interface IHeader {
   maxHeightRadio?: MaxHeightRatio // 占页面最大高度比。默认：HALF
   disabled?: boolean // 是否禁用
   editable?: boolean // 禁止编辑标题内容
+  disabledPages?: number[] // 不显示页眉的页码（从 0 开始）。默认：[]
 }
 ```
 
@@ -121,6 +122,7 @@ interface IFooter {
   maxHeightRadio?: MaxHeightRatio // 占页面最大高度比。默认：HALF
   disabled?: boolean // 是否禁用
   editable?: boolean // 禁止编辑页脚内容
+  disabledPages?: number[] // 不显示页脚的页码（从 0 开始）。默认：[]
 }
 ```
 
@@ -360,6 +362,7 @@ interface IModeRule {
     backgroundDisabled?: boolean // 打印模式禁用背景
     filterEmptyControl?: boolean // 打印模式过滤无值控件。默认：true
     filterHideElementRow?: boolean // 打印模式过滤隐藏元素空行。默认：false
+    areaHideDisabled?: boolean // 打印模式忽略 area 的 hide 配置，强制显示区域及其内容。默认：false
   }
   readonly?: {
     imagePreviewerDisabled?: boolean // 只读模式禁用图片预览

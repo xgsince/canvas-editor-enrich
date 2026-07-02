@@ -590,9 +590,11 @@ private parseCellContent(cell: HTMLTableCellElement): IElement[] {
       endTrIndex
     } = this.range.getRange()
     if (!isCrossRowCol) return
-    const { index } = positionContext
     const originalElementList = this.draw.getOriginalElementList()
-    const element = originalElementList[index!]
+    const element = this.position.getTableElementByContext(
+      originalElementList,
+      positionContext
+    )!
     const curTrList = element.trList!
     let startTd = curTrList[startTrIndex!].tdList[startTdIndex!]
     let endTd = curTrList[endTrIndex!].tdList[endTdIndex!]
@@ -705,11 +707,14 @@ private parseCellContent(cell: HTMLTableCellElement): IElement[] {
       }
     }
     // 设置上下文信息
-    this.position.setPositionContext({
-      ...positionContext,
-      trIndex: anchorTd.trIndex,
-      tdIndex: anchorTd.tdIndex
-    })
+    this.position.setPositionContext(
+      this.position.buildTablePositionContext(
+        positionContext,
+        element,
+        anchorTd.trIndex!,
+        anchorTd.tdIndex!
+      )
+    )
     const curIndex = anchorTd.value.length - 1
     this.range.setRange(curIndex, curIndex)
     // 重新渲染
@@ -720,9 +725,12 @@ private parseCellContent(cell: HTMLTableCellElement): IElement[] {
   public cancelMergeTableCell() {
     const positionContext = this.position.getPositionContext()
     if (!positionContext.isTable) return
-    const { index, tdIndex, trIndex } = positionContext
+    const { tdIndex, trIndex } = positionContext
     const originalElementList = this.draw.getOriginalElementList()
-    const element = originalElementList[index!]
+    const element = this.position.getTableElementByContext(
+      originalElementList,
+      positionContext
+    )!
     const curTrList = element.trList!
     const curTr = curTrList[trIndex!]!
     const curTd = curTr.tdList[tdIndex!]

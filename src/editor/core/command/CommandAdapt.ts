@@ -1,6 +1,7 @@
 import { NBSP, WRAP, ZERO } from '../../dataset/constant/Common'
 import {
   AREA_CONTEXT_ATTR,
+  EDITOR_ELEMENT_PARAGRAPH_STYLE_ATTR,
   EDITOR_ELEMENT_STYLE_ATTR,
   EDITOR_ROW_ATTR,
   LIST_CONTEXT_ATTR,
@@ -137,6 +138,7 @@ import {
 import { IAreaBadge, IBadge } from '../../interface/Badge'
 import { IRichtextOption } from '../../interface/Command'
 import { WatermarkType } from '../../dataset/enum/Watermark'
+import { IPrintOption } from '@/editor/interface/Print'
 
 export class CommandAdapt {
   private draw: Draw
@@ -324,7 +326,10 @@ export class CommandAdapt {
     if (!selection) return
     const painterStyle: IElementStyle = {}
     selection.forEach(s => {
-      const painterStyleKeys = EDITOR_ELEMENT_STYLE_ATTR
+      const painterStyleKeys = [
+        ...EDITOR_ELEMENT_STYLE_ATTR,
+        ...EDITOR_ELEMENT_PARAGRAPH_STYLE_ATTR
+      ]
       painterStyleKeys.forEach(p => {
         const key = p as keyof typeof ElementStyleKey
         if (painterStyle[key] === undefined) {
@@ -981,7 +986,7 @@ export class CommandAdapt {
   public insertTable(row: number, col: number) {
     const isDisabled = this.draw.isReadonly() || this.draw.isDisabled()
     if (isDisabled) return
-    const activeControl = this.control.getActiveControl()
+    const activeControl = this.control.getIsRangeWithinControl()
     if (activeControl) return
     this.tableOperate.insertTable(row, col)
   }
@@ -1099,7 +1104,7 @@ export class CommandAdapt {
     if (!url || !valueList?.length) return
     const isDisabled = this.draw.isReadonly() || this.draw.isDisabled()
     if (isDisabled) return
-    const activeControl = this.control.getActiveControl()
+    const activeControl = this.control.getIsRangeWithinControl()
     if (activeControl) return
     const { startIndex, endIndex } = this.range.getRange()
     if (!~startIndex && !~endIndex) return
@@ -1224,7 +1229,7 @@ export class CommandAdapt {
   ) {
     const isDisabled = this.draw.isReadonly() || this.draw.isDisabled()
     if (isDisabled) return
-    const activeControl = this.control.getActiveControl()
+    const activeControl = this.control.getIsRangeWithinControl()
     if (activeControl) return
     const { startIndex, endIndex } = this.range.getRange()
     if (!~startIndex && !~endIndex) return
@@ -1272,7 +1277,7 @@ export class CommandAdapt {
   public pageBreak() {
     const isDisabled = this.draw.isReadonly() || this.draw.isDisabled()
     if (isDisabled) return
-    const activeControl = this.control.getActiveControl()
+    const activeControl = this.control.getIsRangeWithinControl()
     if (activeControl) return
     this.insertElementList([
       {
@@ -1379,7 +1384,28 @@ export class CommandAdapt {
     this.draw.getSearch().replace(payload, option)
   }
 
-  public async print() {
+  public async print(option?: IPrintOption) {
+    // 离屏渲染支持自定义data和option
+    if (option?.offscreen) {
+      const data = option.data ?? this.draw.getValue().data
+      const options = option.options ?? this.draw.getOptions()
+      const container = document.createElement('div')
+      container.style.position = 'absolute'
+      container.style.left = '-9999px'
+      container.style.top = '0'
+      container.style.visibility = 'hidden'
+      document.body.append(container)
+      const { default: Editor } = await import('../../index')
+      let tempEditor: InstanceType<typeof Editor> | null = null
+      try {
+        tempEditor = new Editor(container, data, options)
+        await tempEditor.command.executePrint()
+      } finally {
+        tempEditor?.destroy()
+        container.remove()
+      }
+      return
+    }
     const { scale, printPixelRatio, paperDirection, width, height } =
       this.options
     if (scale !== 1) {
@@ -1539,7 +1565,7 @@ export class CommandAdapt {
       0
     )
     const height = this.draw.getHeight()
-    const mainOuterHeight = this.draw.getMainOuterHeight()
+    const mainOuterHeight = this.draw.getMainOuterHeight(lastPageIndex)
     const remaining = height - (mainOuterHeight + usedHeight)
     return remaining > 0 ? remaining : 0
   }
