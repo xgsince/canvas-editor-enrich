@@ -2012,6 +2012,67 @@ window.onload = function () {
     })
   }
 
+  // 分栏配置
+  const columnConfigDom =
+    document.querySelector<HTMLDivElement>('.column-config')!
+  columnConfigDom.onclick = function () {
+    const current = instance.command.getColumns()
+    const count = current?.count ?? 1
+    const gap = current?.gap ?? 20
+    const separator = current?.separator ? 'true' : 'false'
+    new Dialog({
+      title: '分栏',
+      data: [
+        {
+          type: 'select',
+          label: '栏数',
+          name: 'count',
+          required: true,
+          value: `${count}`,
+          options: [
+            { value: '1', label: '1（关闭）' },
+            { value: '2', label: '2' },
+            { value: '3', label: '3' },
+            { value: '4', label: '4' },
+            { value: '5', label: '5' }
+          ]
+        },
+        {
+          type: 'text',
+          label: '栏间距',
+          name: 'gap',
+          required: true,
+          value: `${gap}`,
+          placeholder: '请输入栏间距（像素）'
+        },
+        {
+          type: 'select',
+          label: '分隔线',
+          name: 'separator',
+          required: true,
+          value: separator,
+          options: [
+            { value: 'false', label: '不显示' },
+            { value: 'true', label: '显示' }
+          ]
+        }
+      ],
+      onConfirm: payload => {
+        const countValue = payload.find(p => p.name === 'count')?.value
+        if (!countValue) return
+        const gapValue = payload.find(p => p.name === 'gap')?.value
+        if (!gapValue) return
+        const separatorValue = payload.find(p => p.name === 'separator')?.value
+        if (!separatorValue) return
+        instance.command.executeSetColumns({
+          count: Number(countValue),
+          gap: Number(gapValue),
+          separator: separatorValue === 'true'
+        })
+      }
+    })
+  }
+
   // 全屏
   const fullscreenDom = document.querySelector<HTMLDivElement>('.fullscreen')!
   fullscreenDom.onclick = toggleFullscreen
@@ -2316,6 +2377,12 @@ window.onload = function () {
   }
 
   // 9. 右键菜单注册
+  // 宏：从 localStorage 恢复已保存的宏
+  const MACRO_STORAGE_KEY = 'canvas-editor:macros'
+  const saved = localStorage.getItem(MACRO_STORAGE_KEY)
+  if (saved) {
+    instance.macro.importMacros(saved)
+  }
   instance.register.contextMenuList([
     {
       name: '新增题注',
@@ -2425,6 +2492,114 @@ window.onload = function () {
       callback: (command: Command) => {
         command.executeClearGraffiti()
       }
+    },
+    {
+      name: '宏',
+      when: payload => !payload.isReadonly,
+      childMenus: [
+        {
+          name: '录制宏',
+          icon: 'record',
+          when: () => !instance.macro.isRecording(),
+          callback: () => {
+            instance.macro.startRecording()
+          }
+        },
+        {
+          name: '停止录制宏',
+          icon: 'stop',
+          when: () => instance.macro.isRecording(),
+          callback: () => {
+            new Dialog({
+              title: '保存宏',
+              data: [
+                {
+                  type: 'text',
+                  label: '宏名称',
+                  name: 'name',
+                  required: true,
+                  placeholder: '请输入宏名称'
+                }
+              ],
+              onConfirm: payload => {
+                const name = payload.find(p => p.name === 'name')?.value
+                if (!name) return
+                const macro = instance.macro.stopRecording(name)
+                if (!macro) return
+                localStorage.setItem(
+                  MACRO_STORAGE_KEY,
+                  instance.macro.exportMacros()
+                )
+              },
+              onCancel: () => {
+                instance.macro.cancelRecording()
+              }
+            })
+          }
+        },
+        {
+          name: '回放宏',
+          when: () =>
+            !instance.macro.isRecording() &&
+            instance.macro.getMacros().length > 0,
+          callback: () => {
+            const macros = instance.macro.getMacros()
+            new Dialog({
+              title: '回放宏',
+              data: [
+                {
+                  type: 'select',
+                  label: '选择宏',
+                  name: 'macroId',
+                  required: true,
+                  options: macros.map(m => ({
+                    label: `${m.name} (${m.type})`,
+                    value: m.id
+                  }))
+                }
+              ],
+              onConfirm: async payload => {
+                const id = payload.find(p => p.name === 'macroId')?.value
+                if (!id) return
+                await instance.macro.play(id)
+              }
+            })
+          }
+        },
+        {
+          name: '管理宏',
+          when: () =>
+            !instance.macro.isRecording() &&
+            instance.macro.getMacros().length > 0,
+          callback: () => {
+            const macros = instance.macro.getMacros()
+            new Dialog({
+              title: '管理宏',
+              data: [
+                {
+                  type: 'select',
+                  label: '选择要删除的宏',
+                  name: 'macroId',
+                  options: macros.map(m => ({
+                    label: `${m.name} (${m.type})`,
+                    value: m.id
+                  }))
+                }
+              ],
+              onConfirm: payload => {
+                const id = payload.find(p => p.name === 'macroId')?.value
+                if (!id) return
+                if (instance.macro.removeMacro(id)) {
+                  localStorage.setItem(
+                    MACRO_STORAGE_KEY,
+                    instance.macro.exportMacros()
+                  )
+                }
+              }
+            })
+          }
+        }
+      ]
     }
   ])
 

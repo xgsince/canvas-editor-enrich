@@ -59,6 +59,7 @@ import {
   ISetValueOption,
   IUpdateOption
 } from '../../interface/Editor'
+import { IColumnOption } from '../../interface/Column'
 import {
   IDeleteElementByIdOption,
   IElement,
@@ -1810,6 +1811,24 @@ export class CommandAdapt {
 
   public pageMode(payload: PageMode) {
     this.draw.setPageMode(payload)
+  }
+
+  public setColumns(config: IColumnOption | null) {
+    this.draw.setColumnConfig(config)
+    this.draw.render({
+      isSubmitHistory: false,
+      isSetCursor: false
+    })
+  }
+
+  public getColumns(): IColumnOption | null {
+    const layout = this.draw.getColumnLayout()
+    if (!layout) return null
+    return {
+      count: layout.count,
+      gap: layout.gap,
+      separator: layout.separator
+    }
   }
 
   public pageScale(scale: number) {
